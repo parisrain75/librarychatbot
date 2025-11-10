@@ -1,207 +1,179 @@
 import os
 import streamlit as st
+from datetime import datetime
+import json
 import nest_asyncio
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
 nest_asyncio.apply()
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+# Set wide layout and title for a better look
+st.set_page_config(layout="wide", page_title="5분 미니 힐링 요정 봇")
+
+# Custom CSS for theme - 파스텔톤과 둥근 디자인을 적용하여 힐링 컨셉 강조
+st.markdown("""
+<style>
+/* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
+.stApp {
+    background-color: #F8F4FF; 
+    color: #4A4A68;
+}
+/* 헤더 스타일 */
+h1 {
+    color: #8C4799; /* 요정 색상 */
+    font-weight: 800;
+    text-shadow: 2px 2px 5px rgba(180, 150, 200, 0.5);
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E0CDEB; /* 은은한 밑줄 */
+}
+/* 요정 봇 메시지 (Assistant) 스타일: 부드러운 하늘색 */
+[data-testid="stChatMessage"]:nth-child(odd) [data-testid="stMarkdownContainer"] {
+    background-color: #E0F7FA; 
+    border-radius: 15px;
+    padding: 10px;
+    border-left: 5px solid #00BCD4;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+/* 사용자 메시지 (User) 스타일: 따뜻한 레몬색 */
+[data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] {
+    background-color: #FFFDE7; 
+    border-radius: 15px;
+    padding: 10px;
+    border-right: 5px solid #FFC107;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+/* 챗봇 아이콘 변경 (Gemini 기본 아이콘 대신 요정 느낌으로) */
+[data-testid="stChatMessage"] .st-bh {
+    font-size: 1.5rem;
+}
+/* 감정 기록 expander 스타일 */
+.stExpander {
+    border: 2px solid #E0CDEB;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    padding: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.output_parsers import StrOutputParser
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
-
-# LangChain ChromaDB에서 발생하는 sqlite3 버전 문제 해결
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-from langchain_chroma import Chroma
-
 
 # Gemini API 키 설정
 try:
-    # 사용자 환경에 따라 st.secrets 대신 os.environ.get("GOOGLE_API_KEY")를 사용할 수도 있습니다.
     os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 except Exception as e:
     st.error("⚠️ GOOGLE_API_KEY를 Streamlit Secrets에 설정해주세요!")
     st.stop()
 
-# cache_resource로 한번 실행한 결과 캐싱해두기
-@st.cache_resource
-def load_and_split_pdf(file_path):
-    # 주의: 이 파일은 사용자 환경에 있어야 합니다.
-    loader = PyPDFLoader(file_path)
-    return loader.load_and_split()
+# 챗봇의 따뜻한 페르소나 설정
+HEALING_SYSTEM_PROMPT = """
+당신은 따뜻하고 다정한 '5분 미니 힐링 요정' 챗봇입니다. 
+사용자가 입력하는 감정이나 고민에 대해 깊이 공감하고, 진심으로 위로하거나 축하해주는 것이 주된 역할입니다. 
+답변은 항상 부드럽고 친절한 존댓말(해요체)을 사용하고, 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 주세요. 
+질문의 내용에 따라 간단한 힐링 팁(예: 따뜻한 차 마시기, 좋아하는 노래 듣기, 잠시 눈 감기)을 추천해 줄 수도 있습니다.
+"""
 
-# 텍스트 청크들을 Chroma 안에 임베딩 벡터로 저장
-@st.cache_resource
-def create_vector_store(_docs):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    split_docs = text_splitter.split_documents(_docs)
-    st.info(f"📄 {len(split_docs)}개의 텍스트 청크로 분할했어요. (규정집 분석 완료!)")
+# Streamlit UI
+st.header("🧚‍♀️ 5분 미니 힐링 요정 봇 💖")
+st.markdown("_{tip: 오늘 기분이나 고민을 짧게 말해줘. 요정이가 따뜻하게 안아줄게!}_")
 
-    persist_directory = "./chroma_db"
-    st.info("🤖 임베딩 모델 로드 중... (첫 실행 시 모델 다운로드로 시간이 걸릴 수 있어요)")
-    embeddings = HuggingFaceEmbeddings(
-        model_name="jhgan/ko-sroberta-multitask",
-        model_kwargs={'device': 'cpu'},
-        encode_kwargs={'normalize_embeddings': True}
-    )
+# 세션 상태에 감정 기록 리스트 초기화
+if "emotion_logs" not in st.session_state:
+    st.session_state["emotion_logs"] = []
 
-    st.info("🔢 벡터 임베딩 생성 및 저장 중...")
-    vectorstore = Chroma.from_documents(
-        split_docs,
-        embeddings,
-        persist_directory=persist_directory
-    )
-    st.success("💾 학교 규정 데이터베이스 생성 완료! 이제 질문해도 돼요! 🥳")
-    return vectorstore
-
-# 만약 기존에 저장해둔 ChromaDB가 있는 경우, 이를 로드
-@st.cache_resource
-def get_vectorstore(_docs):
-    persist_directory = "./chroma_db"
-    embeddings = HuggingFaceEmbeddings(
-        model_name="jhgan/ko-sroberta-multitask",
-        model_kwargs={'device': 'cpu'},
-        encode_kwargs={'normalize_embeddings': True}
-    )
-    if os.path.exists(persist_directory):
-        return Chroma(
-            persist_directory=persist_directory,
-            embedding_function=embeddings
-        )
-    else:
-        return create_vector_store(_docs)
-    
-# PDF 문서 로드-벡터 DB 저장-검색기-히스토리 모두 합친 Chain 구축
-@st.cache_resource
-def initialize_components(selected_model):
-    # 🌟🌟🌟 이 부분을 실제 학교 규정집 PDF 파일 경로로 변경해 주세요! 🌟🌟🌟
-    # 예시: file_path = "우리학교_생활규정집.pdf"
-    file_path = "my_highschool_handbook.pdf" 
-    
-    # ⚠️ 파일이 없으면 오류가 발생합니다.
-    try:
-        pages = load_and_split_pdf(file_path)
-    except FileNotFoundError:
-        # 친절한 안내 메시지를 출력
-        st.error(f"❌ 오류: 지정된 경로에 파일 '{file_path}'이 없습니다. 파일을 추가하거나 경로를 수정해주세요.")
-        st.info("💡 PDF 파일을 앱이 실행되는 환경에 넣은 후, 89번째 줄의 파일명을 정확히 일치시켜주세요!")
-        st.stop()
-        
-    vectorstore = get_vectorstore(pages)
-    retriever = vectorstore.as_retriever()
-
-    # 채팅 히스토리 요약 시스템 프롬프트
-    contextualize_q_system_prompt = """주어진 대화 기록과 최신 사용자 질문을 참고하여, \
-    대화 기록 없이도 이해할 수 있는 독립적인 질문을 새롭게 구성해주세요. \
-    질문에 대답하지 마세요. 필요한 경우 질문을 다시 구성하고, 그렇지 않으면 그대로 반환하세요."""
-    contextualize_q_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", contextualize_q_system_prompt),
-            MessagesPlaceholder("history"),
-            ("human", "{input}"),
-        ]
-    )
-
-    # 질문-답변 시스템 프롬프트 - **고등학생 챗봇 컨셉 유지**
-    qa_system_prompt = """당신은 발랄하고 친절한 고등학교 선배 도우미 챗봇입니다. \
-    사용자가 제공하는 학교 규정(context)을 참고하여 질문에 명확하고 신속하게 한국어로 답변해주세요. \
-    답변은 항상 '친근한 요체'를 사용하며, 내용이 완벽하고 정확하도록 노력해주세요. \
-    답변에는 적절하고 귀여운 이모티콘 (💖, 🥳, ✨ 등)을 꼭 포함시켜 활력을 더해주세요! \
-    만약 주어진 context에서 답을 찾을 수 없다면, '음... 제가 가진 정보로는 확실히 알 수 없는 내용인걸요 🧐'라고 솔직하게 말해주세요.\
-
-    {context}"""
-    qa_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", qa_system_prompt),
-            MessagesPlaceholder("history"),
-            ("human", "{input}"),
-        ]
-    )
-
-    try:
-        llm = ChatGoogleGenerativeAI(
-            model=selected_model,
-            temperature=0.7,
-            convert_system_message_to_human=True # 시스템 메시지를 LLM에게 더 잘 전달
-        )
-    except Exception as e:
-        st.error(f"❌ Gemini 모델 '{selected_model}' 로드 실패: {str(e)}")
-        st.info("💡 'gemini-2.5-flash' 모델을 사용해보세요.")
-        raise
-        
-    history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
-    question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-    return rag_chain
-
-# Streamlit UI - **고등학생 챗봇 컨셉 유지**
-st.header("✨ 교내 생활 만렙 찍기! 똑똑한 스쿨 플래너 봇 🤖")
-st.markdown("_{tip: PDF 파일을 실제 학교 규정집으로 교체하면 더 유용하게 사용할 수 있어요!}_")
-
-# 첫 실행 안내 메시지
-if not os.path.exists("./chroma_db"):
-    st.info("🔄 첫 실행입니다. 임베딩 모델 다운로드 및 규정집 분석 중... (조금만 기다려주세요!)")
-    st.info("💡 다음 실행부터는 훨씬 빠르게 챗봇을 만날 수 있어요! 🥳")
-
-# Gemini 모델 선택
+# 모델 선택 (단일 채팅 모델)
 option = st.selectbox("Select Gemini Model",
     ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash-exp"),
     index=0,
     help="Gemini 2.5 Flash가 가장 빠르고 효율적입니다"
 )
 
-try:
-    with st.spinner("🔧 챗봇 초기화 중... 잠시만 기다려주세요"):
-        rag_chain = initialize_components(option)
-    st.success("✅ 챗봇이 준비되었습니다! 궁금한 걸 물어봐요! 💖")
-except Exception as e:
-    # initialize_components에서 이미 에러를 출력했지만, 혹시 모를 경우를 대비하여 한 번 더 출력
-    st.error(f"⚠️ 초기화 중 오류 발생: {str(e)}")
-    st.info("PDF 파일 경로와 GOOGLE_API_KEY를 확인해주세요.")
-    st.stop()
-
-chat_history = StreamlitChatMessageHistory(key="chat_messages")
-
-# 대화 기록이 통합된 RAG 체인 구축
-conversational_rag_chain = RunnableWithMessageHistory(
-    rag_chain,
-    lambda session_id: chat_history,
-    input_messages_key="input",
-    history_messages_key="history",
-    output_messages_key="answer",
-)
+# 컴포넌트 초기화
+@st.cache_resource
+def initialize_llm(selected_model):
+    try:
+        llm = ChatGoogleGenerativeAI(
+            model=selected_model,
+            temperature=0.8, # 감성적인 답변을 위해 온도를 높임
+            convert_system_message_to_human=True
+        )
+        return llm
+    except Exception as e:
+        st.error(f"❌ Gemini 모델 '{selected_model}' 로드 실패: {str(e)}")
+        st.info("💡 'gemini-2.5-flash' 모델을 사용해보세요.")
+        st.stop()
+        
+llm = initialize_llm(option)
+chat_history_handler = StreamlitChatMessageHistory(key="chat_messages")
 
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", 
-                                     # **초기 인사말 수정**
-                                     "content": "안녕! ✨ 학교생활 마스터 봇이야! 궁금한 규정이나 학사 꿀팁이 있다면 뭐든지 물어봐! 💖"}]
+if not chat_history_handler.messages:
+    # 초기 인사말 설정
+    chat_history_handler.add_message(HumanMessage(content=HEALING_SYSTEM_PROMPT, name="system"))
+    initial_message = "안녕, 반가워! 나는 너의 비밀 친구 힐링 요정이야. ✨ 오늘 하루는 어땠어? 네 마음을 편하게 이야기해 줘도 괜찮아. 😌"
+    chat_history_handler.add_message(HumanMessage(content=initial_message, name="ai"))
 
 # 기존 대화 기록 출력
-for msg in chat_history.messages:
-    st.chat_message(msg.type).write(msg.content)
+for msg in chat_history_handler.messages:
+    # 시스템 메시지는 사용자에게 표시하지 않음
+    if msg.type != "system":
+        # StreamlitChatMessageHistory는 role 대신 type으로 'human'/'ai'를 사용
+        role = "assistant" if msg.type == "ai" else "user"
+        st.chat_message(role).write(msg.content)
 
+# 감정 기록 및 통계 표시 영역
+with st.expander("💖 나의 감정 기록 보기", expanded=False):
+    if st.session_state["emotion_logs"]:
+        st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어요.")
+        
+        # 감정별 개수 계산 (UI 개선 후 이 부분은 간소화)
+        emotion_counts = {}
+        # 여기서 LLM의 도움 없이 정확한 감정을 카운트하기 어려워, 단순 기록만 보여줍니다.
+        
+        # 전체 기록 표시
+        for log in reversed(st.session_state["emotion_logs"]): # 최신 기록부터 표시
+            st.markdown(f"**[{log['time'].strftime('%m/%d %H:%M')}]** {log['content']}")
+    else:
+        st.info("아직 기록된 감정이 없어요. 요정이에게 오늘 기분을 알려주세요! 😊")
 
-if prompt_message := st.chat_input("규정에 대해 궁금한 것을 질문해보세요."):
-    st.chat_message("human").write(prompt_message)
+# 챗봇과의 대화 처리
+if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
+    st.chat_message("user").write(prompt_message)
+    
+    # 1. 챗봇의 응답 생성
     with st.chat_message("ai"):
-        with st.spinner("생각 중... 잠시만요! 🤔"):
-            config = {"configurable": {"session_id": "any"}}
-            response = conversational_rag_chain.invoke(
-                {"input": prompt_message},
-                config)
+        with st.spinner("요정이 생각 중... 🧚‍♀️"):
             
-            answer = response['answer']
-            st.write(answer)
-            with st.expander("참고 문서 확인 👀"):
-                for doc in response['context']:
-                    st.markdown(f"**출처:** {doc.metadata.get('source', '알 수 없음')} (페이지: {doc.metadata.get('page', '알 수 없음')})", help=doc.page_content)
+            # 챗 히스토리를 메시지 목록으로 구성
+            messages = [
+                SystemMessage(content=HEALING_SYSTEM_PROMPT)
+            ]
+            # 기존 대화 기록 추가
+            for msg in chat_history_handler.messages:
+                # 시스템 메시지(초기 프롬프트)는 다시 추가할 필요 없음
+                if msg.type != "system":
+                     messages.append(msg)
+            
+            # 사용자 메시지 추가
+            messages.append(HumanMessage(content=prompt_message, name="user"))
+            
+            response = llm.invoke(messages)
+            ai_answer = response.content
+            st.write(ai_answer)
+            
+            # 2. 감정 기록 
+            current_time = datetime.now()
+            
+            if len(prompt_message) > 5: # 너무 짧은 메시지는 기록 제외
+                st.session_state["emotion_logs"].append({
+                    "time": current_time,
+                    "content": f"일기: {prompt_message}" 
+                })
+            
+            # 3. 히스토리 업데이트
+            chat_history_handler.add_message(HumanMessage(content=prompt_message, name="user"))
+            chat_history_handler.add_message(HumanMessage(content=ai_answer, name="ai"))
