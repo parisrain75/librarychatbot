@@ -36,33 +36,47 @@ audio_control_html = f"""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 <audio id="background-audio" loop preload="auto" src="{audio_src}" style="display: none;"></audio>
 
-<button id="music-toggle-btn" 
-        onclick="toggleMusic()" 
-        style="
-            background: #9370DB; 
-            color: white; 
-            border: none; 
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px; 
-            cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            
-            /* ✨ 버튼 위치 조정 */
-            margin-left: 10px; /* 제목과의 간격 */
-        ">
-    <i class="fa-solid fa-play"></i>
-</button>
+<div id="music-control-container" style="
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+">
+    <button id="music-toggle-btn" 
+            onclick="toggleMusic()" 
+            style="
+                background: #9370DB; 
+                color: white; 
+                border: none; 
+                border-radius: 50%; 
+                width: 40px; 
+                height: 40px; 
+                cursor: pointer; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                transition: background 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+            ">
+        <i class="fa-solid fa-play"></i>
+    </button>
+    <span id="music-status" style="
+        color: #4A4A68;
+        font-weight: 600;
+        margin-left: 10px;
+        font-size: 0.9rem;
+    ">음악 멈춤</span>
+</div>
+
 
 <script>
     const audio = document.getElementById('background-audio');
     const button = document.getElementById('music-toggle-btn');
     const icon = button.querySelector('i');
+    const statusText = document.getElementById('music-status');
     
     audio.volume = 0.3; 
 
@@ -71,16 +85,28 @@ audio_control_html = f"""
             audio.play().then(() => {{
                 icon.className = 'fa-solid fa-pause';
                 button.style.background = '#FF6347'; 
+                statusText.innerText = '음악 재생 중';
             }}).catch(error => {{
                 console.error('Playback failed:', error);
-                // alert() 대신 Streamlit UI 메시지를 사용하는 것이 좋지만, HTML 내부라서 alert 사용
                 alert('음악 재생에 실패했습니다. 브라우저 정책상 상호작용이 필요합니다.');
             }});
         }} else {{
             audio.pause();
             icon.className = 'fa-solid fa-play';
             button.style.background = '#9370DB'; 
+            statusText.innerText = '음악 멈춤';
         }}
+    }}
+    
+    // 초기 상태 반영
+    if (audio.paused) {{
+        icon.className = 'fa-solid fa-play';
+        button.style.background = '#9370DB';
+        statusText.innerText = '음악 멈춤';
+    }} else {{
+        icon.className = 'fa-solid fa-pause';
+        button.style.background = '#FF6347';
+        statusText.innerText = '음악 재생 중';
     }}
 </script>
 """
@@ -232,24 +258,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------
-# 💖 제목과 음악 버튼을 횡으로 배치하고 가운데 정렬
+# ✨ 음악 버튼은 이제 HTML 컴포넌트 삽입 코드가 됩니다.
 # -----------------------------------------------------
-# 1. 3개의 컬럼을 만들고 가운데 컬럼에 제목과 버튼을 배치
-header_col1, header_col2, header_col3 = st.columns([1, 4, 1])
-
-with header_col2:
-    # 2. 제목과 버튼을 다시 횡으로 배치
-    title_col, button_col = st.columns([6, 1])
-
-    with title_col:
-        # st.markdown을 사용하여 header-container 클래스를 가진 div로 감싸고 st.header를 사용
-        st.markdown('<div class="header-container">', unsafe_allow_html=True)
-        st.header("💖 마음 건강 힐링 상담소 💖")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with button_col:
-        # 음악 버튼 HTML 컴포넌트를 삽입
-        components.html(audio_control_html, height=100)
+# HTML 컴포넌트 (음악 버튼)을 삽입합니다.
+components.html(audio_control_html, height=100)
 # -----------------------------------------------------
 
 
@@ -274,6 +286,18 @@ HEALING_SYSTEM_PROMPT = """
 사용자의 기분을 개선하는 데 도움이 되는 구체적인 행동 팁(예: 심호흡 3회 하기, 5분 동안 좋아하는 음악 듣기, 잠시 창밖 바라보기)을 자주 추천해 줘.
 """
 
+# -----------------------------------------------------
+# 💖 제목과 GIF 레이아웃 (중앙 정렬)
+# -----------------------------------------------------
+# 1. 3개의 컬럼을 만들고 가운데 컬럼에 제목과 버튼을 배치
+header_col1, header_col2, header_col3 = st.columns([1, 4, 1])
+
+with header_col2:
+    # st.markdown을 사용하여 header-container 클래스를 가진 div로 감싸고 st.header를 사용
+    st.markdown('<div class="header-container">', unsafe_allow_html=True)
+    st.header("💖 마음 건강 힐링 상담소 💖")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # 2. GIF 이미지 추가 (중앙 정렬)
 GIF_FILE_PATH = "cute_fairy.gif" 
 col1, col2, col3 = st.columns([1, 1, 1])
@@ -285,6 +309,7 @@ with col2:
         width=150,
         use_column_width=False 
     )
+# -----------------------------------------------------
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
