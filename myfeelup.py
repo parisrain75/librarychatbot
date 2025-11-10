@@ -11,7 +11,7 @@ nest_asyncio.apply()
 st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
 
 # Custom CSS for theme - 상담소 분위기와 명확한 대화 정렬을 위해 CSS 수정
-st.markdown("""
+custom_css = """
 <style>
 /* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
 .stApp {
@@ -124,7 +124,8 @@ h1 {
     padding: 10px;
 }
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 
 
 # LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
@@ -155,8 +156,8 @@ st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 # 💡 [수정] 파일 경로 문제 해결을 위해 공개된 GIF 링크를 사용합니다.
 GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
 
-gif_html = f"""
-<div class="gif-container">
+# Tone.js JavaScript 코드를 별도의 문자열로 분리하여 f-string 오류 방지
+audio_script = """
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <script>
         // Tone.js를 초기화하고 Synth를 생성합니다.
@@ -184,6 +185,11 @@ gif_html = f"""
             }
         }
     </script>
+"""
+
+gif_html = f"""
+<div class="gif-container">
+    {audio_script}
     <img src="{GIF_URL}" 
          onclick="playChime()" 
          alt="힐링 요정 GIF"
