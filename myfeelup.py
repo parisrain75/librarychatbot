@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from datetime import datetime
 import json
-import nest_asyncio # <-- 오타 수정 완료: nest_async_io -> nest_asyncio
+import nest_asyncio 
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
 nest_asyncio.apply()
@@ -13,7 +13,7 @@ st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
 # Custom CSS for theme - 상담소 분위기와 명확한 대화 정렬을 위해 CSS 수정
 custom_css = """
 <style>
-/* Font Awesome 로드 */
+/* Font Awesome 로드 (더 이상 사용하지 않지만, 혹시 모를 경우를 대비해 일단 유지) */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
 
 /* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
@@ -122,7 +122,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #FFD700; /* 요정 아이콘 색상 (금색) */
+    /* Font Awesome 아이콘이 아닌 이모지를 사용하므로 color는 이모지에 적용되지 않습니다. */
 }
 /* 사용자 아이콘 컨테이너 (오른쪽) */
 [data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageAvatar"] {
@@ -137,7 +137,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #FF69B4; /* 사용자 아이콘 색상 (핫핑크) */
+    /* Font Awesome 아이콘이 아닌 이모지를 사용하므로 color는 이모지에 적용되지 않습니다. */
 }
 
 /* 감정 기록 expander 스타일 */
@@ -238,11 +238,11 @@ for msg in chat_history_handler.messages:
         # 초기 메시지가 AIMessage이므로 type이 'ai'로 잘 나옴
         role = "assistant" if msg.type == "ai" else "user"
         
-        # Font Awesome 아이콘 적용을 위해 아이콘 인자 추가
+        # 💡 [수정] Font Awesome 클래스 대신 이모지 사용
         if role == "assistant":
-            st.chat_message(role, avatar="fa-solid fa-sparkles").write(msg.content)
+            st.chat_message(role, avatar="✨").write(msg.content)
         else: # user
-            st.chat_message(role, avatar="fa-solid fa-face-laugh-beam").write(msg.content)
+            st.chat_message(role, avatar="🙂").write(msg.content)
 
 # 감정 기록 및 통계 표시 영역
 with st.expander("💖 나의 마음 기록 보기", expanded=False):
@@ -261,10 +261,10 @@ with st.expander("💖 나의 마음 기록 보기", expanded=False):
 
 # 챗봇과의 대화 처리
 if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
-    st.chat_message("user", avatar="fa-solid fa-face-laugh-beam").write(prompt_message) # 사용자 아이콘 추가
+    st.chat_message("user", avatar="🙂").write(prompt_message) # 사용자 아이콘 추가
     
     # 1. 챗봇의 응답 생성
-    with st.chat_message("ai", avatar="fa-solid fa-sparkles"): # 요정 봇 아이콘 추가
+    with st.chat_message("ai", avatar="✨"): # 요정 봇 아이콘 추가
         with st.spinner("요정이가 네 마음에 귀 기울이는 중... 🧚‍♀️"):
             
             # 챗 히스토리를 메시지 목록으로 구성
