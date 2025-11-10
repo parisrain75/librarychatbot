@@ -143,6 +143,12 @@ HEALING_SYSTEM_PROMPT = """
 
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
+
+# 💖 여기에 귀여운 GIF 이미지 추가! 💖
+# 'cute_fairy.gif' 파일을 스크립트와 같은 폴더에 넣어주세요.
+# width를 조절하여 이미지 크기를 조정할 수 있습니다.
+st.image("cute_fairy.gif", width=150, use_column_width=False, caption="안녕! 나는 힐링 요정이야 ✨") 
+
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
 # 세션 상태에 감정 기록 리스트 초기화
