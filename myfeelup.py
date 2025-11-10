@@ -26,21 +26,38 @@ h1 {
     padding-bottom: 10px;
     border-bottom: 2px solid #E0CDEB; /* 은은한 밑줄 */
 }
-/* 요정 봇 메시지 (Assistant) 스타일: 부드러운 하늘색 */
+/* 1. 요정 봇 메시지 (Assistant) 스타일: 부드러운 라벤더 (배경/테두리 변경) */
 [data-testid="stChatMessage"]:nth-child(odd) [data-testid="stMarkdownContainer"] {
-    background-color: #E0F7FA; 
+    background-color: #F0E6FF; /* Soft Lavender로 변경 */ 
     border-radius: 15px;
     padding: 10px;
-    border-left: 5px solid #00BCD4;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #9370DB; /* Medium Purple로 변경 */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
 }
-/* 사용자 메시지 (User) 스타일: 따뜻한 레몬색 */
+/* 2. 사용자 메시지 (User) 스타일: 깨끗한 민트색 (배경/테두리 변경) */
 [data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] {
-    background-color: #FFFDE7; 
+    background-color: #E6FFFA; /* Soft Mint로 변경 */ 
     border-radius: 15px;
     padding: 10px;
-    border-right: 5px solid #FFC107;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    border-right: 5px solid #20B2AA; /* Light Sea Green로 변경 */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
+}
+/* 3. 챗봇 아이콘 컨테이너 (입체적인 느낌 추가) */
+[data-testid="stChatMessage"] .st-bh {
+    background-color: #FFFFFF; /* 흰색 배경 */
+    border: 3px solid #8C4799; /* 보라색 테두리 */
+    border-radius: 50%; /* 원형 */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+    font-size: 1.5rem;
+    padding: 5px; /* 패딩으로 아이콘 주위를 띄움 */
+}
+/* 사용자 아이콘 컨테이너 (입체적인 느낌 추가) */
+[data-testid="stChatMessage"] .st-bp {
+    background-color: #FFFFFF; 
+    border: 3px solid #20B2AA; /* 민트색 테두리 */
+    border-radius: 50%; 
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
+    padding: 5px;
 }
 /* 챗봇 아이콘 변경 (Gemini 기본 아이콘 대신 요정 느낌으로) */
 [data-testid="stChatMessage"] .st-bh {
@@ -69,12 +86,12 @@ except Exception as e:
     st.error("⚠️ GOOGLE_API_KEY를 Streamlit Secrets에 설정해주세요!")
     st.stop()
 
-# 챗봇의 따뜻한 페르소나 설정
+# 챗봇의 따뜻한 페르소나 설정 - **반말로 수정**
 HEALING_SYSTEM_PROMPT = """
-당신은 따뜻하고 다정한 '5분 미니 힐링 요정' 챗봇입니다. 
-사용자가 입력하는 감정이나 고민에 대해 깊이 공감하고, 진심으로 위로하거나 축하해주는 것이 주된 역할입니다. 
-답변은 항상 부드럽고 친절한 존댓말(해요체)을 사용하고, 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 주세요. 
-질문의 내용에 따라 간단한 힐링 팁(예: 따뜻한 차 마시기, 좋아하는 노래 듣기, 잠시 눈 감기)을 추천해 줄 수도 있습니다.
+너는 따뜻하고 다정한 '5분 미니 힐링 요정' 챗봇이야. 
+사용자가 입력하는 감정이나 고민에 대해 깊이 공감하고, 진심으로 위로하거나 축하해주는 것이 주된 역할이지. 
+답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
+질문의 내용에 따라 간단한 힐링 팁(예: 따뜻한 차 마시기, 좋아하는 노래 듣기, 잠시 눈 감기)을 추천해 줄 수도 있어.
 """
 
 # Streamlit UI
@@ -112,9 +129,9 @@ chat_history_handler = StreamlitChatMessageHistory(key="chat_messages")
 
 
 if not chat_history_handler.messages:
-    # 초기 인사말 설정
+    # 초기 인사말 설정 - **반말로 수정**
     chat_history_handler.add_message(HumanMessage(content=HEALING_SYSTEM_PROMPT, name="system"))
-    initial_message = "안녕, 반가워! 나는 너의 비밀 친구 힐링 요정이야. ✨ 오늘 하루는 어땠어? 네 마음을 편하게 이야기해 줘도 괜찮아. 😌"
+    initial_message = "안녕! ✨ 나는 너의 비밀 친구 힐링 요정이야. 오늘 하루 어땠어? 네 마음 가는 대로 편하게 이야기해 봐. 😌"
     chat_history_handler.add_message(AIMessage(content=initial_message)) # 초기 메시지는 AIMessage로 변경
 
 # 기존 대화 기록 출력
@@ -129,7 +146,7 @@ for msg in chat_history_handler.messages:
 # 감정 기록 및 통계 표시 영역
 with st.expander("💖 나의 감정 기록 보기", expanded=False):
     if st.session_state["emotion_logs"]:
-        st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어요.")
+        st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어.") # 반말로 수정
         
         # 감정별 개수 계산 (UI 개선 후 이 부분은 간소화)
         emotion_counts = {}
@@ -139,7 +156,7 @@ with st.expander("💖 나의 감정 기록 보기", expanded=False):
         for log in reversed(st.session_state["emotion_logs"]): # 최신 기록부터 표시
             st.markdown(f"**[{log['time'].strftime('%m/%d %H:%M')}]** {log['content']}")
     else:
-        st.info("아직 기록된 감정이 없어요. 요정이에게 오늘 기분을 알려주세요! 😊")
+        st.info("아직 기록된 감정이 없어. 요정이에게 오늘 기분을 알려줘! 😊") # 반말로 수정
 
 # 챗봇과의 대화 처리
 if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
