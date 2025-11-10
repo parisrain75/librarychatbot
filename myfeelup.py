@@ -35,11 +35,11 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
-/* 1. 요정 봇 (AI) 메시지 - 왼쪽 정렬 유지 */
-[data-testid="stChatMessage"]:nth-child(odd) {
+/* 1. 요정 봇 (AI, Assistant) 메시지 - 왼쪽 정렬 유지 */
+[data-testid="stChatMessage"][data-index="odd"] { /* Streamlit 내부 구조 변경 대응 */
     justify-content: flex-start; /* 왼쪽 정렬 */
 }
-[data-testid="stChatMessage"]:nth-child(odd) [data-testid="stMarkdownContainer"] {
+[data-testid="stChatMessage"][data-index="odd"] [data-testid="stChatMessageContent"] {
     background-color: #F0E6FF; /* Soft Lavender */ 
     border-radius: 15px;
     padding: 10px;
@@ -49,11 +49,11 @@ h1 {
 }
 
 /* 2. 사용자 (User) 메시지 - ✨ 오른쪽 정렬 적용 ✨ */
-[data-testid="stChatMessage"]:nth-child(even) {
+[data-testid="stChatMessage"][data-index="even"] { /* Streamlit 내부 구조 변경 대응 */
     flex-direction: row-reverse; /* 아이콘을 오른쪽으로 이동 */
-    justify-content: flex-start; /* 실제 정렬을 위한 기본 설정 */
+    justify-content: flex-start; /* flex-direction: row-reverse 때문에 이렇게 설정해야 함 */
 }
-[data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] {
+[data-testid="stChatMessage"][data-index="even"] [data-testid="stChatMessageContent"] {
     background-color: #E6FFFA; /* Soft Mint */ 
     border-radius: 15px;
     padding: 10px;
@@ -63,13 +63,16 @@ h1 {
     /* 오른쪽 정렬의 핵심 */
     margin-left: 20%; /* 왼쪽 여백을 크게 줘서 오른쪽으로 밀어냄 */
     margin-right: 15px; /* 아이콘과의 간격 */
+    text-align: right; /* 텍스트 오른쪽 정렬 */
 }
-[data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] p {
+[data-testid="stChatMessage"][data-index="even"] [data-testid="stChatMessageContent"] p {
     text-align: right; /* 사용자 메시지 안의 텍스트도 오른쪽 정렬 */
 }
 
+
 /* 3. 챗봇 아이콘 컨테이너 (입체적인 느낌 유지) */
-[data-testid="stChatMessage"] .st-bh {
+/* 어시스턴트 아이콘 */
+[data-testid="stChatMessage"][data-index="odd"] [data-testid="stChatMessageAvatar"] {
     background-color: #FFFFFF;
     border: 3px solid #8C4799; 
     border-radius: 50%;
@@ -77,15 +80,17 @@ h1 {
     font-size: 1.5rem;
     padding: 5px; 
 }
-/* 사용자 아이콘 컨테이너 (입체적인 느낌 유지) */
-[data-testid="stChatMessage"] .st-bp {
+/* 사용자 아이콘 컨테이너 */
+[data-testid="stChatMessage"][data-index="even"] [data-testid="stChatMessageAvatar"] {
     background-color: #FFFFFF; 
     border: 3px solid #20B2AA; 
     border-radius: 50%; 
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
     padding: 5px;
     margin-left: 10px; /* 오른쪽 정렬 시 좌측 여백 추가 */
+    margin-right: 0;
 }
+
 /* 감정 기록 expander 스타일 */
 .stExpander {
     border: 2px solid #E0CDEB;
