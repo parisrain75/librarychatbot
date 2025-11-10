@@ -8,9 +8,9 @@ import nest_asyncio
 nest_asyncio.apply()
 
 # Set wide layout and title for a better look
-st.set_page_config(layout="wide", page_title="5분 미니 힐링 요정 봇")
+st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
 
-# Custom CSS for theme - 파스텔톤과 둥근 디자인을 적용하여 힐링 컨셉 강조
+# Custom CSS for theme - 상담소 분위기와 명확한 대화 정렬을 위해 CSS 수정
 st.markdown("""
 <style>
 /* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
@@ -34,42 +34,57 @@ h1 {
     padding: 20px 30px; /* 상하좌우 패딩 크게 추가 */
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
-/* 1. 요정 봇 메시지 (Assistant) 스타일: 부드러운 라벤더 (배경/테두리 변경) */
+
+/* 1. 요정 봇 (AI) 메시지 - 왼쪽 정렬 유지 */
+[data-testid="stChatMessage"]:nth-child(odd) {
+    justify-content: flex-start; /* 왼쪽 정렬 */
+}
 [data-testid="stChatMessage"]:nth-child(odd) [data-testid="stMarkdownContainer"] {
-    background-color: #F0E6FF; /* Soft Lavender로 변경 */ 
+    background-color: #F0E6FF; /* Soft Lavender */ 
     border-radius: 15px;
     padding: 10px;
-    border-left: 5px solid #9370DB; /* Medium Purple로 변경 */
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
+    border-left: 5px solid #9370DB; /* Medium Purple */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
+    margin-right: 20%; /* 대화창 폭 제한 */
 }
-/* 2. 사용자 메시지 (User) 스타일: 깨끗한 민트색 (배경/테두리 변경) */
+
+/* 2. 사용자 (User) 메시지 - ✨ 오른쪽 정렬 적용 ✨ */
+[data-testid="stChatMessage"]:nth-child(even) {
+    flex-direction: row-reverse; /* 아이콘을 오른쪽으로 이동 */
+    justify-content: flex-start; /* 실제 정렬을 위한 기본 설정 */
+}
 [data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] {
-    background-color: #E6FFFA; /* Soft Mint로 변경 */ 
+    background-color: #E6FFFA; /* Soft Mint */ 
     border-radius: 15px;
     padding: 10px;
-    border-right: 5px solid #20B2AA; /* Light Sea Green로 변경 */
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); /* 그림자 강화 */
+    border-right: 5px solid #20B2AA; /* Light Sea Green */
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
+    
+    /* 오른쪽 정렬의 핵심 */
+    margin-left: 20%; /* 왼쪽 여백을 크게 줘서 오른쪽으로 밀어냄 */
+    margin-right: 15px; /* 아이콘과의 간격 */
 }
-/* 3. 챗봇 아이콘 컨테이너 (입체적인 느낌 추가) */
+[data-testid="stChatMessage"]:nth-child(even) [data-testid="stMarkdownContainer"] p {
+    text-align: right; /* 사용자 메시지 안의 텍스트도 오른쪽 정렬 */
+}
+
+/* 3. 챗봇 아이콘 컨테이너 (입체적인 느낌 유지) */
 [data-testid="stChatMessage"] .st-bh {
-    background-color: #FFFFFF; /* 흰색 배경 */
-    border: 3px solid #8C4799; /* 보라색 테두리 */
-    border-radius: 50%; /* 원형 */
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+    background-color: #FFFFFF;
+    border: 3px solid #8C4799; 
+    border-radius: 50%;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
     font-size: 1.5rem;
-    padding: 5px; /* 패딩으로 아이콘 주위를 띄움 */
+    padding: 5px; 
 }
-/* 사용자 아이콘 컨테이너 (입체적인 느낌 추가) */
+/* 사용자 아이콘 컨테이너 (입체적인 느낌 유지) */
 [data-testid="stChatMessage"] .st-bp {
     background-color: #FFFFFF; 
-    border: 3px solid #20B2AA; /* 민트색 테두리 */
+    border: 3px solid #20B2AA; 
     border-radius: 50%; 
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
     padding: 5px;
-}
-/* 챗봇 아이콘 변경 (Gemini 기본 아이콘 대신 요정 느낌으로) */
-[data-testid="stChatMessage"] .st-bh {
-    font-size: 1.5rem;
+    margin-left: 10px; /* 오른쪽 정렬 시 좌측 여백 추가 */
 }
 /* 감정 기록 expander 스타일 */
 .stExpander {
@@ -94,17 +109,18 @@ except Exception as e:
     st.error("⚠️ GOOGLE_API_KEY를 Streamlit Secrets에 설정해주세요!")
     st.stop()
 
-# 챗봇의 따뜻한 페르소나 설정 - **반말로 수정**
+# 챗봇의 따뜻한 페르소나 설정 - **상담 컨셉으로 수정 (반말 유지)**
 HEALING_SYSTEM_PROMPT = """
-너는 따뜻하고 다정한 '5분 미니 힐링 요정' 챗봇이야. 
-사용자가 입력하는 감정이나 고민에 대해 깊이 공감하고, 진심으로 위로하거나 축하해주는 것이 주된 역할이지. 
-답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
-질문의 내용에 따라 간단한 힐링 팁(예: 따뜻한 차 마시기, 좋아하는 노래 듣기, 잠시 눈 감기)을 추천해 줄 수도 있어.
+너는 따뜻하고 전문적인 '마음 건강 상담 요정' 챗봇이야. 
+사용자가 이야기하는 고민이나 감정을 깊이 있게 경청하고, 그 감정의 뿌리를 함께 탐색하도록 부드럽게 질문하는 것이 너의 주된 역할이지. 
+단순한 위로가 아닌, 사용자가 스스로 생각하고 마음을 정리할 수 있도록 도와줘.
+답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 신뢰감과 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
+사용자의 기분을 개선하는 데 도움이 되는 구체적인 행동 팁(예: 심호흡 3회 하기, 5분 동안 좋아하는 음악 듣기, 잠시 창밖 바라보기)을 자주 추천해 줘.
 """
 
 # Streamlit UI
-st.header("🧚‍♀️ 5분 미니 힐링 요정 봇 💖")
-st.markdown("_{tip: 오늘 기분이나 고민을 짧게 말해줘. 요정이가 따뜻하게 안아줄게!}_")
+st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
+st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
 # 세션 상태에 감정 기록 리스트 초기화
 if "emotion_logs" not in st.session_state:
@@ -139,7 +155,7 @@ chat_history_handler = StreamlitChatMessageHistory(key="chat_messages")
 if not chat_history_handler.messages:
     # 초기 인사말 설정 - **반말로 수정**
     chat_history_handler.add_message(HumanMessage(content=HEALING_SYSTEM_PROMPT, name="system"))
-    initial_message = "안녕! ✨ 나는 너의 비밀 친구 힐링 요정이야. 오늘 하루 어땠어? 네 마음 가는 대로 편하게 이야기해 봐. 😌"
+    initial_message = "안녕! ✨ 나는 너의 마음을 살펴주는 힐링 요정이야. 오늘 네 마음속은 어떤 이야기로 가득 차 있어? 편하게 시작해 봐. 😌"
     chat_history_handler.add_message(AIMessage(content=initial_message)) # 초기 메시지는 AIMessage로 변경
 
 # 기존 대화 기록 출력
@@ -152,7 +168,7 @@ for msg in chat_history_handler.messages:
         st.chat_message(role).write(msg.content)
 
 # 감정 기록 및 통계 표시 영역
-with st.expander("💖 나의 감정 기록 보기", expanded=False):
+with st.expander("💖 나의 마음 기록 보기", expanded=False):
     if st.session_state["emotion_logs"]:
         st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어.") # 반말로 수정
         
@@ -164,7 +180,7 @@ with st.expander("💖 나의 감정 기록 보기", expanded=False):
         for log in reversed(st.session_state["emotion_logs"]): # 최신 기록부터 표시
             st.markdown(f"**[{log['time'].strftime('%m/%d %H:%M')}]** {log['content']}")
     else:
-        st.info("아직 기록된 감정이 없어. 요정이에게 오늘 기분을 알려줘! 😊") # 반말로 수정
+        st.info("아직 기록된 마음의 이야기가 없어. 요정이와 대화하며 마음을 정리해 봐! 😊") # 반말로 수정
 
 # 챗봇과의 대화 처리
 if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
@@ -172,7 +188,7 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
     
     # 1. 챗봇의 응답 생성
     with st.chat_message("ai"):
-        with st.spinner("요정이 생각 중... 🧚‍♀️"):
+        with st.spinner("요정이가 네 마음에 귀 기울이는 중... 🧚‍♀️"):
             
             # 챗 히스토리를 메시지 목록으로 구성
             messages = [
@@ -198,7 +214,7 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
             if len(prompt_message) > 5: # 너무 짧은 메시지는 기록 제외
                 st.session_state["emotion_logs"].append({
                     "time": current_time,
-                    "content": f"일기: {prompt_message}" 
+                    "content": f"마음 기록: {prompt_message}" 
                 })
             
             # 3. 히스토리 업데이트
