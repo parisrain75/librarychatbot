@@ -299,6 +299,13 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
             current_time = datetime.now()
             
             if len(prompt_message) > 5: # 너무 짧은 메시지는 기록 제외
+                # 🚨 [오류 수정] f-string 안에 중괄호가 깨지지 않도록 수정했습니다.
                 st.session_state["emotion_logs"].append({
                     "time": current_time,
-                    "content": f"마음 기록: {
+                    "content": f"마음 기록: {prompt_message}" 
+                })
+            
+            # 3. 히스토리 업데이트
+            chat_history_handler.add_message(HumanMessage(content=prompt_message, name="user"))
+            # LLM 응답은 AIMessage 객체이므로 content만 추출하여 저장
+            chat_history_handler.add_message(AIMessage(content=ai_answer))
