@@ -159,6 +159,7 @@ st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
 
 # Tone.js JavaScript 코드를 별도의 문자열로 분리하고 HTML 컴포넌트로 분리
+# 🚨 [수정] JavaScript 내부의 중괄호 {{ }}를 이스케이프 처리하여 Python f-string 오류 방지 
 audio_script_html = f"""
 <div style="text-align: center;">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
@@ -167,8 +168,8 @@ audio_script_html = f"""
         let synth;
         
         // AudioContext는 사용자의 첫 상호작용이 있어야 활성화됩니다.
-        function initializeAudio() {
-            if (!synth) {
+        function initializeAudio() {{
+            if (!synth) {{
                 // AudioContext 활성화
                 Tone.start();
                 synth = new Tone.Synth({{
@@ -176,17 +177,17 @@ audio_script_html = f"""
                     envelope: {{ attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.5 }}
                 }}).toDestination();
                 console.log("AudioContext 및 Synth 초기화 완료.");
-            }
-        }
+            }}
+        }}
         
         // 클릭 시 소리 재생
-        function playChime() {
+        function playChime() {{
             initializeAudio(); // 첫 클릭 시 오디오 초기화
             if (synth) {{
                 // 반짝이는 요정 소리 (C5, E5, G5 화음)
                 synth.triggerAttackRelease(["C5", "E5", "G5"], "4n", Tone.now(), 0.5);
             }}
-        }
+        }}
     </script>
     <img src="{GIF_URL}" 
          onclick="playChime()" 
@@ -300,10 +301,4 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
             if len(prompt_message) > 5: # 너무 짧은 메시지는 기록 제외
                 st.session_state["emotion_logs"].append({
                     "time": current_time,
-                    "content": f"마음 기록: {prompt_message}" 
-                })
-            
-            # 3. 히스토리 업데이트
-            chat_history_handler.add_message(HumanMessage(content=prompt_message, name="user"))
-            # LLM 응답은 AIMessage 객체이므로 content만 추출하여 저장
-            chat_history_handler.add_message(AIMessage(content=ai_answer))
+                    "content": f"마음 기록: {
