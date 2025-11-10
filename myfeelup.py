@@ -35,51 +35,62 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
-/* 1. 요정 봇 (AI, Assistant) 메시지 - 왼쪽 정렬 유지 */
-/* Streamlit 기본 AI 메시지 스타일 유지 및 폭 제한 */
-[data-testid="stChatMessage"][data-index] { 
-    padding: 0; /* 기본 패딩 제거 */
+/* 챗 메시지 컨테이너의 기본 마진을 초기화 */
+[data-testid="stChatMessage"] {
+    padding: 0; 
     margin-bottom: 10px;
+    max-width: 100%;
 }
-/* AI 메시지 내용 박스 */
-[data-testid="stChatMessage"][data-testid="stChatMsgContainer"] [data-testid="stChatMessageContent"] {
+
+/* 1. 요정 봇 (AI/Assistant) 메시지 - 왼쪽 정렬 유지 */
+[data-testid="stChatMessageContent"] {
+    /* AI 메시지: 왼쪽 정렬 (기본값) */
+    margin-left: 0 !important;
+    margin-right: auto !important; 
+    max-width: 80%;
+}
+/* AI 메시지 내용 박스 스타일 */
+[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
     background-color: #F0E6FF; /* Soft Lavender */ 
     border-radius: 15px;
     padding: 10px;
     border-left: 5px solid #9370DB; /* Medium Purple */
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
-    max-width: 80%; /* 대화창 폭 제한 */
-    margin-right: auto; /* 왼쪽 정렬 보장 */
-    margin-left: 0;
+    text-align: left;
 }
 
+
 /* 2. 사용자 (User) 메시지 - ✨ 오른쪽 정렬 강제 적용 ✨ */
-/* 사용자 메시지 전체 컨테이너를 오른쪽으로 밀어냄 */
-[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
-    margin-right: 0 !important; /* Streamlit 기본 마진 재정의 */
-    margin-left: auto !important; /* 오른쪽 정렬의 핵심 */
-    flex-direction: row-reverse !important; /* 아이콘을 오른쪽으로 */
+/* --- 핵심: 챗 메시지 전체 컨테이너를 오른쪽으로 정렬 --- */
+[data-testid="stChatMessage"][role="user"] {
+    display: flex;
+    flex-direction: row-reverse; /* 아이콘을 오른쪽으로 이동 */
+    justify-content: flex-start; /* 전체 메시지 박스를 오른쪽 끝에 붙임 */
 }
 
 /* 사용자 메시지 내용 박스 스타일 */
-[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
+[data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageContent"] {
     background-color: #E6FFFA; /* Soft Mint */ 
     border-radius: 15px;
     padding: 10px;
     border-right: 5px solid #20B2AA; /* Light Sea Green */
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
+    
+    /* 오른쪽 정렬을 위한 마진 조정 */
+    margin-left: 20% !important; /* 왼쪽 여백을 크게 줘서 오른쪽으로 밀어냄 */
+    margin-right: 15px !important; /* 아이콘과의 간격 */
     max-width: 80%; /* 대화창 폭 제한 */
 }
 
 /* 사용자 메시지 안의 텍스트 오른쪽 정렬 */
-[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] p {
+[data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageContent"] p {
     text-align: right; 
 }
 
 
 /* 3. 챗봇 아이콘 컨테이너 (입체적인 느낌 유지) */
-/* 어시스턴트 아이콘 */
-[data-testid="stChatMessage"] [data-testid="stChatMessageAvatar"] {
+/* 어시스턴트 아이콘 (왼쪽) */
+[data-testid="stChatMessage"][role="assistant"] [data-testid="stChatMessageAvatar"] {
     background-color: #FFFFFF;
     border: 3px solid #8C4799; 
     border-radius: 50%;
@@ -87,11 +98,15 @@ h1 {
     font-size: 1.5rem;
     padding: 5px; 
 }
-/* 사용자 아이콘 컨테이너 (오른쪽 정렬을 위해 마진 수정) */
-[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] + [data-testid="stChatMessageAvatar"] {
-    margin-left: 10px !important; /* 아이콘과 메시지 간격 */
+/* 사용자 아이콘 컨테이너 (오른쪽) */
+[data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageAvatar"] {
+    background-color: #FFFFFF; 
+    border: 3px solid #20B2AA; 
+    border-radius: 50%; 
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
+    padding: 5px;
+    margin-left: 0 !important; /* 오른쪽 정렬 시 좌측 여백 제거 */
     margin-right: 0 !important;
-    border: 3px solid #20B2AA; /* 사용자 색상 테두리 */
 }
 
 /* 감정 기록 expander 스타일 */
