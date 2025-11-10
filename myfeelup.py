@@ -27,6 +27,7 @@ try:
         audio_b64 = base64.b64encode(audio_bytes).decode()
         audio_src = f"data:audio/mp3;base64,{audio_b64}"
 except FileNotFoundError:
+    # 파일이 없으면 재생 기능을 비활성화
     st.warning(f"⚠️ 경고: '{AUDIO_FILE_PATH}' 파일을 찾을 수 없어 배경음악 기능이 작동하지 않습니다. 파일을 추가해 주세요.")
     audio_src = ""
 
@@ -51,7 +52,9 @@ audio_control_html = f"""
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            margin: 0 auto;
+            
+            /* ✨ 버튼 위치 조정 */
+            margin-left: 10px; /* 제목과의 간격 */
         ">
     <i class="fa-solid fa-play"></i>
 </button>
@@ -61,33 +64,26 @@ audio_control_html = f"""
     const button = document.getElementById('music-toggle-btn');
     const icon = button.querySelector('i');
     
-    // 볼륨 설정 (너무 크지 않게)
     audio.volume = 0.3; 
 
-    // 재생/정지 토글 함수
     function toggleMusic() {{
         if (audio.paused) {{
-            // 재생 시도 (사용자 상호작용 필요)
             audio.play().then(() => {{
                 icon.className = 'fa-solid fa-pause';
-                button.style.background = '#FF6347'; // 정지 색상 (빨간색 계열)
-                console.log('Music started.');
+                button.style.background = '#FF6347'; 
             }}).catch(error => {{
                 console.error('Playback failed:', error);
-                alert('자동 재생이 차단되었습니다. 페이지를 새로고침하거나 다른 곳을 클릭해 주세요.');
+                // alert() 대신 Streamlit UI 메시지를 사용하는 것이 좋지만, HTML 내부라서 alert 사용
+                alert('음악 재생에 실패했습니다. 브라우저 정책상 상호작용이 필요합니다.');
             }});
         }} else {{
             audio.pause();
             icon.className = 'fa-solid fa-play';
-            button.style.background = '#9370DB'; // 재생 색상 (보라색 계열)
-            console.log('Music paused.');
+            button.style.background = '#9370DB'; 
         }}
     }}
 </script>
 """
-
-# HTML 컴포넌트를 사용하여 스크립트를 삽입
-components.html(audio_control_html, height=60)
 # -----------------------------------------------------
 
 
@@ -102,22 +98,39 @@ st.markdown("""
     background-color: #F8F4FF; 
     color: #4A4A68;
 }
+
+/* ✨ Header Container 정렬 (제목과 버튼을 한 줄에 놓고 가운데 정렬) */
+[data-testid="stHorizontalBlock"] {
+    display: flex;
+    justify-content: center; /* 전체 블록을 중앙에 배치 */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 30px;
+}
+/* Header Container의 Streamlit Column 내부 요소 정렬 */
+[data-testid="column"] {
+    display: flex;
+    justify-content: center; /* 컬럼 내부 요소 (h1, 버튼) 중앙 정렬 */
+    align-items: center;
+}
+
+
 /* 헤더 스타일 - ✨ 간판 스타일로 대폭 수정 ✨ */
-h1 {
-    color: #4A4A68; /* 진한 회색 톤으로 변경하여 이미지와 유사하게 */
-    font-weight: 900; /* 매우 굵게 */
-    font-size: 3rem; /* 글자 크기 키우기 */
+.header-container h1 {
+    color: #4A4A68; 
+    font-weight: 900; 
+    font-size: 3rem; 
     text-shadow: 2px 2px 5px rgba(180, 150, 200, 0.5);
-    text-align: center; /* 텍스트 가운데 정렬 */
+    text-align: center; 
     
     /* ✨ 배경 및 입체감 유지 */
-    background: linear-gradient(145deg, #FFFFFF 90%, #E0F7FA 100%); /* 그라데이션 배경 */
-    border: 3px solid #E0CDEB; /* 은은한 보라색 테두리 */
-    border-radius: 20px; /* 둥근 모서리 강화 */
-    box-shadow: 0 6px 15px rgba(147, 112, 219, 0.4); /* 연보라색 그림자 강화 */
+    background: linear-gradient(145deg, #FFFFFF 90%, #E0F7FA 100%); 
+    border: 3px solid #E0CDEB; 
+    border-radius: 20px; 
+    box-shadow: 0 6px 15px rgba(147, 112, 219, 0.4); 
     
-    padding: 20px 30px; /* 상하좌우 패딩 크게 추가 */
-    margin-bottom: 30px; /* 아래쪽 마진 추가 */
+    padding: 20px 30px; 
+    margin: 0; /* st.header 기본 마진 제거 */
 }
 
 /* GIF container styling for customizing st.image */
@@ -128,8 +141,8 @@ h1 {
 /* st.image 내부의 이미지에 직접 스타일 적용 */
 [data-testid="stImage"] img {
     border-radius: 50%; 
-    border: 5px solid #9370DB; /* 요정 테두리 색상 */
-    box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
+    border: 5px solid #9370DB; 
+    box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); 
     object-fit: cover;
 }
 /* GIF 캡션 가운데 정렬 */
@@ -146,42 +159,39 @@ h1 {
 
 /* 1. 요정 봇 (AI/Assistant) 메시지 - 왼쪽 정렬 유지 */
 [data-testid="stChatMessageContent"] {
-    /* AI 메시지: 왼쪽 정렬 (기본값) */
     margin-left: 0 !important;
     margin-right: auto !important; 
     max-width: 80%;
 }
 /* AI 메시지 내용 박스 스타일 */
 [data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
-    background-color: #F0E6FF; /* Soft Lavender */ 
+    background-color: #F0E6FF; 
     border-radius: 15px;
     padding: 10px;
-    border-left: 5px solid #9370DB; /* Medium Purple */
+    border-left: 5px solid #9370DB; 
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
     text-align: left;
 }
 
 
 /* 2. 사용자 (User) 메시지 - ✨ 오른쪽 정렬 강제 적용 ✨ */
-/* --- 핵심: 챗 메시지 전체 컨테이너를 오른쪽으로 정렬 --- */
 [data-testid="stChatMessage"][role="user"] {
     display: flex;
-    flex-direction: row-reverse; /* 아이콘을 오른쪽으로 이동 */
-    justify-content: flex-start; /* 전체 메시지 박스를 오른쪽 끝에 붙임 */
+    flex-direction: row-reverse; 
+    justify-content: flex-start; 
 }
 
 /* 사용자 메시지 내용 박스 스타일 */
 [data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageContent"] {
-    background-color: #E6FFFA; /* Soft Mint */ 
+    background-color: #E6FFFA; 
     border-radius: 15px;
     padding: 10px;
-    border-right: 5px solid #20B2AA; /* Light Sea Green */
+    border-right: 5px solid #20B2AA; 
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15); 
     
-    /* 오른쪽 정렬을 위한 마진 조정 */
-    margin-left: 20% !important; /* 왼쪽 여백을 크게 줘서 오른쪽으로 밀어냄 */
-    margin-right: 15px !important; /* 아이콘과의 간격 */
-    max-width: 80%; /* 대화창 폭 제한 */
+    margin-left: 20% !important; 
+    margin-right: 15px !important; 
+    max-width: 80%; 
 }
 
 /* 사용자 메시지 안의 텍스트 오른쪽 정렬 */
@@ -207,7 +217,7 @@ h1 {
     border-radius: 50%; 
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
     padding: 5px;
-    margin-left: 0 !important; /* 오른쪽 정렬 시 좌측 여백 제거 */
+    margin-left: 0 !important; 
     margin-right: 0 !important;
 }
 
@@ -220,6 +230,27 @@ h1 {
 }
 </style>
 """, unsafe_allow_html=True)
+
+# -----------------------------------------------------
+# 💖 제목과 음악 버튼을 횡으로 배치하고 가운데 정렬
+# -----------------------------------------------------
+# 1. 3개의 컬럼을 만들고 가운데 컬럼에 제목과 버튼을 배치
+header_col1, header_col2, header_col3 = st.columns([1, 4, 1])
+
+with header_col2:
+    # 2. 제목과 버튼을 다시 횡으로 배치
+    title_col, button_col = st.columns([6, 1])
+
+    with title_col:
+        # st.markdown을 사용하여 header-container 클래스를 가진 div로 감싸고 st.header를 사용
+        st.markdown('<div class="header-container">', unsafe_allow_html=True)
+        st.header("💖 마음 건강 힐링 상담소 💖")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with button_col:
+        # 음악 버튼 HTML 컴포넌트를 삽입
+        components.html(audio_control_html, height=100)
+# -----------------------------------------------------
 
 
 # LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
@@ -242,10 +273,6 @@ HEALING_SYSTEM_PROMPT = """
 답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 신뢰감과 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
 사용자의 기분을 개선하는 데 도움이 되는 구체적인 행동 팁(예: 심호흡 3회 하기, 5분 동안 좋아하는 음악 듣기, 잠시 창밖 바라보기)을 자주 추천해 줘.
 """
-
-# Streamlit UI
-st.header("💖 마음 건강 힐링 상담소 💖")
-
 
 # 2. GIF 이미지 추가 (중앙 정렬)
 GIF_FILE_PATH = "cute_fairy.gif" 
