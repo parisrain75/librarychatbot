@@ -5,7 +5,7 @@ import json
 import nest_asyncio
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
-nest_asyncio.apply()
+nest_async_io.apply()
 
 # Set wide layout and title for a better look
 st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
@@ -13,6 +13,9 @@ st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
 # Custom CSS for theme - 상담소 분위기와 명확한 대화 정렬을 위해 CSS 수정
 custom_css = """
 <style>
+/* Font Awesome 로드 */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
 /* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
 .stApp {
     background-color: #F8F4FF; 
@@ -36,11 +39,11 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
-/* GIF container styling for centering and customizing st.image */
-/* st.image가 생성하는 figure 태그를 중앙 정렬 */
+/* GIF container styling for customizing st.image */
+/* st.image가 생성하는 figure 태그를 중앙 정렬할 필요 없음 (st.columns로 해결) */
 [data-testid="stImage"] {
     text-align: center;
-    margin: 0 auto 20px auto; /* 중앙 정렬 및 하단 마진 */
+    margin: 0 auto 0 auto; /* 중앙 정렬 */
 }
 /* st.image 내부의 이미지에 직접 스타일 적용 */
 [data-testid="stImage"] img {
@@ -48,6 +51,10 @@ h1 {
     border: 5px solid #9370DB; /* 요정 테두리 색상 */
     box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
     object-fit: cover;
+}
+/* GIF 캡션 가운데 정렬 */
+[data-testid="caption"] {
+    text-align: center;
 }
 
 /* 챗 메시지 컨테이너의 기본 마진을 초기화 */
@@ -110,8 +117,12 @@ h1 {
     border: 3px solid #8C4799; 
     border-radius: 50%;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* 아이콘 크기 조정 */
     padding: 5px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFD700; /* 요정 아이콘 색상 (금색) */
 }
 /* 사용자 아이콘 컨테이너 (오른쪽) */
 [data-testid="stChatMessage"][role="user"] [data-testid="stChatMessageAvatar"] {
@@ -119,9 +130,14 @@ h1 {
     border: 3px solid #20B2AA; 
     border-radius: 50%; 
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); 
+    font-size: 1.5rem; /* 아이콘 크기 조정 */
     padding: 5px;
     margin-left: 0 !important; /* 오른쪽 정렬 시 좌측 여백 제거 */
     margin-right: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FF69B4; /* 사용자 아이콘 색상 (핫핑크) */
 }
 
 /* 감정 기록 expander 스타일 */
@@ -160,19 +176,23 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 [수정] st.image에 use_column_width=True를 추가하여 GIF 애니메이션 활성화를 시도합니다. 💖
+# 💖 [수정] st.columns를 사용하여 GIF와 캡션을 중앙 정렬합니다. 💖
 GIF_FILE_PATH = "cute_fairy.gif" 
 
-# st.image를 사용하여 로컬 파일 경로에 있는 GIF를 로드
-st.image(
-    GIF_FILE_PATH, 
-    caption="안녕! 나는 힐링 요정이야 ✨", # 캡션을 설명 텍스트로 사용
-    width=150,
-    # 💡 이 옵션을 추가하여 Streamlit이 GIF 파일을 다시 처리하고 애니메이션을 활성화하도록 유도합니다.
-    use_column_width=False 
-)
+# 3개의 컬럼을 만들어 가운데 컬럼에만 GIF를 배치
+col1, col2, col3 = st.columns([1, 1, 1])
 
-st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
+with col2:
+    # st.image를 사용하여 로컬 파일 경로에 있는 GIF를 로드
+    st.image(
+        GIF_FILE_PATH, 
+        caption="안녕! 나는 힐링 요정이야 ✨", # 캡션을 설명 텍스트로 사용
+        width=150,
+        use_column_width=False 
+    )
+# -----------------------------------------------------
+
+st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들게!}_")
 
 # 세션 상태에 감정 기록 리스트 초기화
 if "emotion_logs" not in st.session_state:
@@ -217,7 +237,12 @@ for msg in chat_history_handler.messages:
         # StreamlitChatMessageHistory는 role 대신 type으로 'human'/'ai'를 사용
         # 초기 메시지가 AIMessage이므로 type이 'ai'로 잘 나옴
         role = "assistant" if msg.type == "ai" else "user"
-        st.chat_message(role).write(msg.content)
+        
+        # Font Awesome 아이콘 적용을 위해 아이콘 인자 추가
+        if role == "assistant":
+            st.chat_message(role, avatar="fa-solid fa-sparkles").write(msg.content)
+        else: # user
+            st.chat_message(role, avatar="fa-solid fa-face-laugh-beam").write(msg.content)
 
 # 감정 기록 및 통계 표시 영역
 with st.expander("💖 나의 마음 기록 보기", expanded=False):
@@ -236,10 +261,10 @@ with st.expander("💖 나의 마음 기록 보기", expanded=False):
 
 # 챗봇과의 대화 처리
 if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
-    st.chat_message("user").write(prompt_message)
+    st.chat_message("user", avatar="fa-solid fa-face-laugh-beam").write(prompt_message) # 사용자 아이콘 추가
     
     # 1. 챗봇의 응답 생성
-    with st.chat_message("ai"):
+    with st.chat_message("ai", avatar="fa-solid fa-sparkles"): # 요정 봇 아이콘 추가
         with st.spinner("요정이가 네 마음에 귀 기울이는 중... 🧚‍♀️"):
             
             # 챗 히스토리를 메시지 목록으로 구성
