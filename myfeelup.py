@@ -18,14 +18,15 @@ st.markdown("""
     background-color: #F8F4FF; 
     color: #4A4A68;
 }
-/* 헤더 스타일 - ✨ 배경 및 입체감 추가 */
+/* 헤더 스타일 - ✨ 간판 스타일로 대폭 수정 ✨ */
 h1 {
-    color: #8C4799; /* 요정 색상 */
-    font-weight: 800;
+    color: #4A4A68; /* 진한 회색 톤으로 변경하여 이미지와 유사하게 */
+    font-weight: 900; /* 매우 굵게 */
+    font-size: 3rem; /* 글자 크기 키우기 */
     text-shadow: 2px 2px 5px rgba(180, 150, 200, 0.5);
     text-align: center; /* 텍스트 가운데 정렬 */
     
-    /* ✨ 배경 및 입체감 추가 */
+    /* ✨ 배경 및 입체감 유지 */
     background: linear-gradient(145deg, #FFFFFF 90%, #E0F7FA 100%); /* 그라데이션 배경 */
     border: 3px solid #E0CDEB; /* 은은한 보라색 테두리 */
     border-radius: 20px; /* 둥근 모서리 강화 */
@@ -142,7 +143,7 @@ HEALING_SYSTEM_PROMPT = """
 """
 
 # Streamlit UI
-st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
+st.header("💖 마음 건강 힐링 상담소 💖")
 
 # 💖 여기에 귀여운 GIF 이미지 추가! 💖
 # 'cute_fairy.gif' 파일을 스크립트와 같은 폴더에 넣어주세요.
