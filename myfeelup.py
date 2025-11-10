@@ -18,13 +18,21 @@ st.markdown("""
     background-color: #F8F4FF; 
     color: #4A4A68;
 }
-/* 헤더 스타일 */
+/* 헤더 스타일 - ✨ 배경 및 입체감 추가 */
 h1 {
     color: #8C4799; /* 요정 색상 */
     font-weight: 800;
     text-shadow: 2px 2px 5px rgba(180, 150, 200, 0.5);
-    padding-bottom: 10px;
-    border-bottom: 2px solid #E0CDEB; /* 은은한 밑줄 */
+    text-align: center; /* 텍스트 가운데 정렬 */
+    
+    /* ✨ 배경 및 입체감 추가 */
+    background: linear-gradient(145deg, #FFFFFF 90%, #E0F7FA 100%); /* 그라데이션 배경 */
+    border: 3px solid #E0CDEB; /* 은은한 보라색 테두리 */
+    border-radius: 20px; /* 둥근 모서리 강화 */
+    box-shadow: 0 6px 15px rgba(147, 112, 219, 0.4); /* 연보라색 그림자 강화 */
+    
+    padding: 20px 30px; /* 상하좌우 패딩 크게 추가 */
+    margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 /* 1. 요정 봇 메시지 (Assistant) 스타일: 부드러운 라벤더 (배경/테두리 변경) */
 [data-testid="stChatMessage"]:nth-child(odd) [data-testid="stMarkdownContainer"] {
