@@ -125,10 +125,6 @@ st.markdown("""
     color: #4A4A68;
 }
 
-/* ✨ Header Container 정렬 (제목과 버튼을 한 줄에 놓고 가운데 정렬) */
-/* 이 부분은 이제 사용하지 않습니다. */
-
-
 /* 헤더 스타일 - ✨ 간판 스타일로 대폭 수정 ✨ */
 .header-container h1 {
     color: #4A4A68; 
@@ -147,11 +143,14 @@ st.markdown("""
     margin: 0; /* st.header 기본 마진 제거 */
 }
 
-/* GIF container styling for customizing st.image */
+/* GIF 컨테이너 중앙 정렬을 위한 CSS 추가 */
 [data-testid="stImage"] {
-    text-align: center;
-    margin: 0 auto 0 auto;
+    display: flex; /* Flexbox 활성화 */
+    justify-content: center; /* 내부 콘텐츠 중앙 정렬 */
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
+
 /* st.image 내부의 이미지에 직접 스타일 적용 */
 [data-testid="stImage"] img {
     border-radius: 50%; 
@@ -306,6 +305,8 @@ def initialize_llm(selected_model):
         st.stop()
         
 llm = initialize_llm(option)
+# 🚨🚨🚨 에러 수정: chat_history_handler를 LLM 초기화 직후로 이동 🚨🚨🚨
+from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory 
 chat_history_handler = StreamlitChatMessageHistory(key="chat_messages")
 
 
