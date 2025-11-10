@@ -2,6 +2,10 @@ import os
 import streamlit as st
 from datetime import datetime
 import json
+import nest_asyncio
+
+# Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
+nest_asyncio.apply()
 
 # Set wide layout and title for a better look
 st.set_page_config(layout="wide", page_title="5분 미니 힐링 요정 봇")
@@ -55,7 +59,7 @@ h1 {
 
 # LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage # AIMessage도 import
 from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
 
 # Gemini API 키 설정
@@ -111,13 +115,14 @@ if not chat_history_handler.messages:
     # 초기 인사말 설정
     chat_history_handler.add_message(HumanMessage(content=HEALING_SYSTEM_PROMPT, name="system"))
     initial_message = "안녕, 반가워! 나는 너의 비밀 친구 힐링 요정이야. ✨ 오늘 하루는 어땠어? 네 마음을 편하게 이야기해 줘도 괜찮아. 😌"
-    chat_history_handler.add_message(HumanMessage(content=initial_message, name="ai"))
+    chat_history_handler.add_message(AIMessage(content=initial_message)) # 초기 메시지는 AIMessage로 변경
 
 # 기존 대화 기록 출력
 for msg in chat_history_handler.messages:
     # 시스템 메시지는 사용자에게 표시하지 않음
     if msg.type != "system":
         # StreamlitChatMessageHistory는 role 대신 type으로 'human'/'ai'를 사용
+        # 초기 메시지가 AIMessage이므로 type이 'ai'로 잘 나옴
         role = "assistant" if msg.type == "ai" else "user"
         st.chat_message(role).write(msg.content)
 
@@ -157,7 +162,8 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
             # 사용자 메시지 추가
             messages.append(HumanMessage(content=prompt_message, name="user"))
             
-            response = llm.invoke(messages)
+            # 💡 수정된 부분: llm.invoke 대신 llm.predict_messages를 사용하여 동기식 호출 (이전 오류 해결)
+            response = llm.predict_messages(messages)
             ai_answer = response.content
             st.write(ai_answer)
             
@@ -172,4 +178,5 @@ if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
             
             # 3. 히스토리 업데이트
             chat_history_handler.add_message(HumanMessage(content=prompt_message, name="user"))
-            chat_history_handler.add_message(HumanMessage(content=ai_answer, name="ai"))
+            # LLM 응답은 AIMessage 객체이므로 content만 추출하여 저장
+            chat_history_handler.add_message(AIMessage(content=ai_answer))
