@@ -36,6 +36,23 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
+/* GIF container styling for customizing st.image */
+[data-testid="stImage"] {
+    text-align: center;
+    margin: 0 auto 0 auto;
+}
+/* st.image 내부의 이미지에 직접 스타일 적용 */
+[data-testid="stImage"] img {
+    border-radius: 50%; 
+    border: 5px solid #9370DB; /* 요정 테두리 색상 */
+    box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
+    object-fit: cover;
+}
+/* GIF 캡션 가운데 정렬 */
+[data-testid="caption"] {
+    text-align: center;
+}
+
 /* 챗 메시지 컨테이너의 기본 마진을 초기화 */
 [data-testid="stChatMessage"] {
     padding: 0; 
@@ -145,10 +162,68 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("💖 마음 건강 힐링 상담소 💖")
 
-# 💖 여기에 귀여운 GIF 이미지 추가! 💖
-# 'cute_fairy.gif' 파일을 스크립트와 같은 폴더에 넣어주세요.
-# width를 조절하여 이미지 크기를 조정할 수 있습니다.
-st.image("cute_fairy.gif", width=150, use_column_width=False, caption="안녕! 나는 힐링 요정이야 ✨") 
+# -----------------------------------------------------
+# 🎶 배경 음악 (Ambient Sound) 및 GIF 추가 🎶
+# -----------------------------------------------------
+import streamlit.components.v1 as components
+
+# 1. 배경 음악 스크립트 (Tone.js 사용)
+audio_script_html = f"""
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+<script>
+    // Tone.js를 초기화하고 Synth를 생성합니다.
+    let ambientSynth;
+
+    function initializeAudio() {{
+        if (!ambientSynth) {{
+            // AudioContext 활성화
+            Tone.start();
+
+            // 부드러운 패드(Pad) 사운드를 위한 Synth 설정
+            ambientSynth = new Tone.PolySynth(Tone.Synth, {{
+                oscillator: {{ type: "sine" }}, // 부드러운 사인파
+                envelope: {{
+                    attack: 4,    // 길게 서서히 시작
+                    decay: 1,
+                    sustain: 0.8,
+                    release: 5    // 길게 서서히 끝남
+                }},
+                volume: -15 // 볼륨을 낮게 설정 (배경음악)
+            }}).toDestination();
+
+            // C3 메이저 코드 (C3, E3, G3)를 느리게 반복 재생
+            const loop = new Tone.Loop(time => {{
+                ambientSynth.triggerAttackRelease(["C3", "E3", "G3"], "8n", time, 0.5);
+            }}, "4n").start(0); 
+
+            Tone.Transport.start();
+            console.log("Ambient Music Initialized and Started.");
+        }}
+    }}
+    
+    // 페이지 클릭 또는 상호작용 시 오디오 초기화 및 재생
+    document.documentElement.addEventListener('click', initializeAudio, {{ once: true }});
+    document.documentElement.addEventListener('touchstart', initializeAudio, {{ once: true }});
+    
+</script>
+"""
+
+# HTML 컴포넌트를 사용하여 스크립트를 삽입 (화면에 보이지 않도록 높이 0)
+components.html(audio_script_html, height=0)
+
+
+# 2. GIF 이미지 추가 (중앙 정렬)
+GIF_FILE_PATH = "cute_fairy.gif" 
+col1, col2, col3 = st.columns([1, 1, 1])
+
+with col2:
+    st.image(
+        GIF_FILE_PATH, 
+        caption="안녕! 나는 힐링 요정이야 ✨",
+        width=150,
+        use_column_width=False 
+    )
+# -----------------------------------------------------
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
@@ -193,18 +268,19 @@ for msg in chat_history_handler.messages:
     # 시스템 메시지는 사용자에게 표시하지 않음
     if msg.type != "system":
         # StreamlitChatMessageHistory는 role 대신 type으로 'human'/'ai'를 사용
-        # 초기 메시지가 AIMessage이므로 type이 'ai'로 잘 나옴
         role = "assistant" if msg.type == "ai" else "user"
-        st.chat_message(role).write(msg.content)
+        
+        # 아바타를 이모지로 설정
+        if role == "assistant":
+            st.chat_message(role, avatar="✨").write(msg.content)
+        else:
+            st.chat_message(role, avatar="🙂").write(msg.content)
+
 
 # 감정 기록 및 통계 표시 영역
 with st.expander("💖 나의 마음 기록 보기", expanded=False):
     if st.session_state["emotion_logs"]:
         st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어.") # 반말로 수정
-        
-        # 감정별 개수 계산 (UI 개선 후 이 부분은 간소화)
-        emotion_counts = {}
-        # 여기서 LLM의 도움 없이 정확한 감정을 카운트하기 어려워, 단순 기록만 보여줍니다.
         
         # 전체 기록 표시
         for log in reversed(st.session_state["emotion_logs"]): # 최신 기록부터 표시
@@ -214,10 +290,10 @@ with st.expander("💖 나의 마음 기록 보기", expanded=False):
 
 # 챗봇과의 대화 처리
 if prompt_message := st.chat_input("오늘 기분이나 고민을 적어줘."):
-    st.chat_message("user").write(prompt_message)
+    st.chat_message("user", avatar="🙂").write(prompt_message)
     
     # 1. 챗봇의 응답 생성
-    with st.chat_message("ai"):
+    with st.chat_message("ai", avatar="✨"):
         with st.spinner("요정이가 네 마음에 귀 기울이는 중... 🧚‍♀️"):
             
             # 챗 히스토리를 메시지 목록으로 구성
