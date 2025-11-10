@@ -3,8 +3,6 @@ import streamlit as st
 from datetime import datetime
 import json
 import nest_asyncio
-# HTML 컴포넌트를 사용하기 위해 추가
-# import streamlit.components.v1 as components # 👈 이 코드를 제거했어!
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
 nest_asyncio.apply()
@@ -38,10 +36,11 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
-/* GIF container styling for centering */
-.gif-container {
+/* GIF container styling for centering and customizing st.image */
+/* st.image가 생성하는 figure 태그를 중앙 정렬 */
+[data-testid="stImage"] {
     text-align: center;
-    margin-bottom: 20px;
+    margin: 0 auto 20px auto; /* 중앙 정렬 및 하단 마진 */
 }
 
 /* 챗 메시지 컨테이너의 기본 마진을 초기화 */
@@ -154,26 +153,17 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 [수정] GIF 이미지 경로를 로컬 파일 경로로 변경했습니다. 💖
+# 💖 [수정] st.markdown 대신 st.image를 사용하여 GIF 파일을 안전하게 로드합니다. 💖
 # ⚠️ 이 코드가 작동하려면 'cute_fairy.gif' 파일이 이 스크립트와 같은 폴더에 있어야 합니다.
 GIF_FILE_PATH = "cute_fairy.gif" 
 
-# st.markdown(unsafe_allow_html=True)를 사용하여 GIF 이미지와 설명만 삽입
-st.markdown(f"""
-<div style="text-align: center;">
-    <img src="{GIF_FILE_PATH}" 
-         alt="힐링 요정 GIF"
-         style="width: 150px; 
-                height: 150px;
-                border-radius: 50%; 
-                border: 5px solid #9370DB; /* 요정 테두리 색상 */
-                box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
-                object-fit: cover;">
-    <p style="font-size: 0.9em; color: #8C4799; margin-top: 10px;">
-        안녕! 나는 힐링 요정이야 ✨
-    </p>
-</div>
-""", unsafe_allow_html=True)
+# st.image를 사용하여 로컬 파일 경로에 있는 GIF를 로드
+st.image(
+    GIF_FILE_PATH, 
+    caption="안녕! 나는 힐링 요정이야 ✨", # 캡션을 설명 텍스트로 사용
+    width=150
+)
+# st.markdown을 제거했습니다.
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
