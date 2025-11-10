@@ -2,10 +2,10 @@ import os
 import streamlit as st
 from datetime import datetime
 import json
-import nest_asyncio
+import nest_asyncio # <-- 오타 수정 완료: nest_async_io -> nest_asyncio
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
-nest_async_io.apply()
+nest_asyncio.apply()
 
 # Set wide layout and title for a better look
 st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
