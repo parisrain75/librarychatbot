@@ -3,6 +3,8 @@ import streamlit as st
 from datetime import datetime
 import json
 import nest_asyncio
+# HTML 컴포넌트를 사용하기 위해 추가
+import streamlit.components.v1 as components 
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
 nest_asyncio.apply()
@@ -156,8 +158,9 @@ st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 # 💡 [수정] 파일 경로 문제 해결을 위해 공개된 GIF 링크를 사용합니다.
 GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
 
-# Tone.js JavaScript 코드를 별도의 문자열로 분리하여 f-string 오류 방지
-audio_script = """
+# Tone.js JavaScript 코드를 별도의 문자열로 분리하고 HTML 컴포넌트로 분리
+audio_script_html = f"""
+<div style="text-align: center;">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <script>
         // Tone.js를 초기화하고 Synth를 생성합니다.
@@ -168,10 +171,10 @@ audio_script = """
             if (!synth) {
                 // AudioContext 활성화
                 Tone.start();
-                synth = new Tone.Synth({
-                    oscillator: { type: "triangle" }, // 부드러운 소리
-                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.5 }
-                }).toDestination();
+                synth = new Tone.Synth({{
+                    oscillator: {{ type: "triangle" }}, // 부드러운 소리
+                    envelope: {{ attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.5 }}
+                }}).toDestination();
                 console.log("AudioContext 및 Synth 초기화 완료.");
             }
         }
@@ -179,17 +182,12 @@ audio_script = """
         // 클릭 시 소리 재생
         function playChime() {
             initializeAudio(); // 첫 클릭 시 오디오 초기화
-            if (synth) {
+            if (synth) {{
                 // 반짝이는 요정 소리 (C5, E5, G5 화음)
                 synth.triggerAttackRelease(["C5", "E5", "G5"], "4n", Tone.now(), 0.5);
-            }
+            }}
         }
     </script>
-"""
-
-gif_html = f"""
-<div class="gif-container">
-    {audio_script}
     <img src="{GIF_URL}" 
          onclick="playChime()" 
          alt="힐링 요정 GIF"
@@ -205,7 +203,8 @@ gif_html = f"""
     </p>
 </div>
 """
-st.markdown(gif_html, unsafe_allow_html=True) 
+# st.markdown 대신 st.components.v1.html을 사용하여 JavaScript와 HTML을 안전하게 삽입
+components.html(audio_script_html, height=220)
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
