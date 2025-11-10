@@ -126,19 +126,7 @@ st.markdown("""
 }
 
 /* ✨ Header Container 정렬 (제목과 버튼을 한 줄에 놓고 가운데 정렬) */
-[data-testid="stHorizontalBlock"] {
-    display: flex;
-    justify-content: center; /* 전체 블록을 중앙에 배치 */
-    align-items: center;
-    width: 100%;
-    margin-bottom: 30px;
-}
-/* Header Container의 Streamlit Column 내부 요소 정렬 */
-[data-testid="column"] {
-    display: flex;
-    justify-content: center; /* 컬럼 내부 요소 (h1, 버튼) 중앙 정렬 */
-    align-items: center;
-}
+/* 이 부분은 이제 사용하지 않습니다. */
 
 
 /* 헤더 스타일 - ✨ 간판 스타일로 대폭 수정 ✨ */
@@ -264,45 +252,23 @@ st.markdown("""
 components.html(audio_control_html, height=100)
 # -----------------------------------------------------
 
-
-# LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage 
-from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
-
-# Gemini API 키 설정
-try:
-    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-except Exception as e:
-    st.error("⚠️ GOOGLE_API_KEY를 Streamlit Secrets에 설정해주세요!")
-    st.stop()
-
-# 챗봇의 따뜻한 페르소나 설정 - **상담 컨셉으로 수정 (반말 유지)**
-HEALING_SYSTEM_PROMPT = """
-너는 따뜻하고 전문적인 '마음 건강 상담 요정' 챗봇이야. 
-사용자가 이야기하는 고민이나 감정을 깊이 있게 경청하고, 그 감정의 뿌리를 함께 탐색하도록 부드럽게 질문하는 것이 너의 주된 역할이지. 
-단순한 위로가 아닌, 사용자가 스스로 생각하고 마음을 정리할 수 있도록 도와줘.
-답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 신뢰감과 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
-사용자의 기분을 개선하는 데 도움이 되는 구체적인 행동 팁(예: 심호흡 3회 하기, 5분 동안 좋아하는 음악 듣기, 잠시 창밖 바라보기)을 자주 추천해 줘.
-"""
-
 # -----------------------------------------------------
-# 💖 제목과 GIF 레이아웃 (중앙 정렬)
+# 💖 제목과 GIF 레이아웃 (중앙 정렬) - 동일한 컬럼 비율 적용
 # -----------------------------------------------------
-# 1. 3개의 컬럼을 만들고 가운데 컬럼에 제목과 버튼을 배치
-header_col1, header_col2, header_col3 = st.columns([1, 4, 1])
+CENTERING_RATIO = [1, 4, 1] # 1:4:1 비율로 가운데 40%를 중앙 컨텐츠 블록으로 사용
 
-with header_col2:
-    # st.markdown을 사용하여 header-container 클래스를 가진 div로 감싸고 st.header를 사용
+# 1. 제목 (간판) 중앙 정렬
+title_col1, title_col2, title_col3 = st.columns(CENTERING_RATIO)
+with title_col2:
     st.markdown('<div class="header-container">', unsafe_allow_html=True)
     st.header("💖 마음 건강 힐링 상담소 💖")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # 2. GIF 이미지 추가 (중앙 정렬)
 GIF_FILE_PATH = "cute_fairy.gif" 
-col1, col2, col3 = st.columns([1, 1, 1])
+gif_col1, gif_col2, gif_col3 = st.columns(CENTERING_RATIO)
 
-with col2:
+with gif_col2:
     st.image(
         GIF_FILE_PATH, 
         caption="안녕! 나는 힐링 요정이야 ✨",
