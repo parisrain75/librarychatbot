@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 import nest_asyncio
 # HTML 컴포넌트를 사용하기 위해 추가
-import streamlit.components.v1 as components 
+# import streamlit.components.v1 as components # 👈 이 코드를 제거했어!
 
 # Streamlit에서 비동기 작업을 위한 이벤트 루프 설정
 nest_asyncio.apply()
@@ -154,58 +154,26 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 여기에 귀여운 GIF 이미지와 클릭 시 효과음 JavaScript 추가! 💖
-# 💡 [수정] 파일 경로 문제 해결을 위해 공개된 GIF 링크를 사용합니다.
+# 💖 [수정] GIF 이미지와 클릭 효과음 코드를 간단한 GIF 이미지만 남기도록 변경했습니다. 💖
 GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
 
-# Tone.js JavaScript 코드를 별도의 문자열로 분리하고 HTML 컴포넌트로 분리
-# 🚨 [수정] JavaScript 내부의 중괄호 {{ }}를 이스케이프 처리하여 Python f-string 오류 방지 
-audio_script_html = f"""
+# st.markdown(unsafe_allow_html=True)를 사용하여 GIF 이미지와 설명만 삽입
+st.markdown(f"""
 <div style="text-align: center;">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-    <script>
-        // Tone.js를 초기화하고 Synth를 생성합니다.
-        let synth;
-        
-        // AudioContext는 사용자의 첫 상호작용이 있어야 활성화됩니다.
-        function initializeAudio() {{
-            if (!synth) {{
-                // AudioContext 활성화
-                Tone.start();
-                synth = new Tone.Synth({{
-                    oscillator: {{ type: "triangle" }}, // 부드러운 소리
-                    envelope: {{ attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.5 }}
-                }}).toDestination();
-                console.log("AudioContext 및 Synth 초기화 완료.");
-            }}
-        }}
-        
-        // 클릭 시 소리 재생
-        function playChime() {{
-            initializeAudio(); // 첫 클릭 시 오디오 초기화
-            if (synth) {{
-                // 반짝이는 요정 소리 (C5, E5, G5 화음)
-                synth.triggerAttackRelease(["C5", "E5", "G5"], "4n", Tone.now(), 0.5);
-            }}
-        }}
-    </script>
     <img src="{GIF_URL}" 
-         onclick="playChime()" 
          alt="힐링 요정 GIF"
-         style="cursor: pointer; 
-                width: 150px; 
+         style="width: 150px; 
                 height: 150px;
                 border-radius: 50%; 
                 border: 5px solid #9370DB; /* 요정 테두리 색상 */
                 box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
                 object-fit: cover;">
     <p style="font-size: 0.9em; color: #8C4799; margin-top: 10px;">
-        안녕! 나는 힐링 요정이야 ✨ (클릭하면 소리가 나! 🎶)
+        안녕! 나는 힐링 요정이야 ✨
     </p>
 </div>
-"""
-# st.markdown 대신 st.components.v1.html을 사용하여 JavaScript와 HTML을 안전하게 삽입
-components.html(audio_script_html, height=220)
+""", unsafe_allow_html=True)
+# 이전의 st.components.v1.html 코드를 모두 제거했습니다.
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
