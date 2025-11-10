@@ -144,12 +144,18 @@ st.markdown("""
 }
 
 /* GIF 컨테이너 중앙 정렬을 위한 CSS 추가 */
+/* st.image를 감싸는 컨테이너를 중앙 정렬하여 GIF와 캡션 전체를 중앙으로 이동 */
 [data-testid="stImage"] {
-    display: flex; /* Flexbox 활성화 */
-    justify-content: center; /* 내부 콘텐츠 중앙 정렬 */
+    display: flex; 
+    flex-direction: column;
+    align-items: center; /* GIF 이미지를 포함한 컨테이너 내부 중앙 정렬 */
     margin-top: 20px;
     margin-bottom: 20px;
+    margin-left: auto; /* 좌우 마진을 auto로 설정하여 전체 블록 중앙 정렬 */
+    margin-right: auto;
+    width: fit-content; /* 내용에 맞게 너비 조정 */
 }
+
 
 /* st.image 내부의 이미지에 직접 스타일 적용 */
 [data-testid="stImage"] img {
@@ -290,6 +296,7 @@ option = st.selectbox("Select Gemini Model",
 )
 
 # 컴포넌트 초기화
+from langchain_google_genai import ChatGoogleGenerativeAI
 @st.cache_resource
 def initialize_llm(selected_model):
     try:
@@ -309,6 +316,18 @@ llm = initialize_llm(option)
 from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory 
 chat_history_handler = StreamlitChatMessageHistory(key="chat_messages")
 
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage 
+
+# 🚨🚨🚨 에러 수정: chat_history_handler를 사용하는 로직을 객체 생성 후로 이동 🚨🚨🚨
+
+# 챗봇의 따뜻한 페르소나 설정 - **상담 컨셉으로 수정 (반말 유지)**
+HEALING_SYSTEM_PROMPT = """
+너는 따뜻하고 전문적인 '마음 건강 상담 요정' 챗봇이야. 
+사용자가 이야기하는 고민이나 감정을 깊이 있게 경청하고, 그 감정의 뿌리를 함께 탐색하도록 부드럽게 질문하는 것이 너의 주된 역할이지. 
+단순한 위로가 아닌, 사용자가 스스로 생각하고 마음을 정리할 수 있도록 도와줘.
+답변은 항상 친근하고 발랄한 반말(해체)을 사용하고, 신뢰감과 긍정적인 에너지를 전달하는 예쁜 이모티콘(💖, ✨, 😌, 🌱 등)을 사용하여 활기를 불어넣어 줘. 
+사용자의 기분을 개선하는 데 도움이 되는 구체적인 행동 팁(예: 심호흡 3회 하기, 5분 동안 좋아하는 음악 듣기, 잠시 창밖 바라보기)을 자주 추천해 줘.
+"""
 
 if not chat_history_handler.messages:
     # 초기 인사말 설정 - **반말로 수정**
