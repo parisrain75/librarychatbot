@@ -41,6 +41,8 @@ st.markdown("""
 }
 .small-muted {color:#666; font-size:12px;}
 .stChatMessage .stMarkdown { font-size: 16px; line-height: 1.6; }
+.codehint {font-size:13px; color:#555; background:#fafafa; padding:8px 10px; border:1px dashed #ddd; border-radius:10px;}
+textarea {font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,9 +132,9 @@ def cached_chain(selected_model, temp, tone_key):
 simple_chain = cached_chain(option, temperature, tone)
 
 # ──────────────────────────────────────────────
-# 탭 구성
+# 탭 구성 (오답풀이 붙여넣기 모드 추가)
 # ──────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🎯 입시·상담", "📚 학습·오답", "🌿 멘탈·루틴"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 입시·상담", "📚 학습·오답", "🌿 멘탈·루틴", "📝 오답풀이(붙여넣기)"])
 
 with tab1:
     st.subheader("빠른 프롬프트")
@@ -169,37 +171,30 @@ with tab3:
         chat_history.add_user_message("목·눈·손목 중심으로 30초 스트레칭 2개 추천해줘.")
         st.rerun()
 
-# ──────────────────────────────────────────────
-# 기존 메시지 출력
-# ──────────────────────────────────────────────
-for message in chat_history.messages:
-    with st.chat_message(message.type):
-        st.markdown(message.content)
+with tab4:
+    st.subheader("파일 없이 바로 오답풀이 (여러 문항 한 번에 가능)")
+    st.markdown("""
+- 아래 **붙여넣기 박스**에 문제·선지·내가 고른 답·정답·해설(있다면)을 붙여넣으세요.  
+- 여러 문항은 `---` 한 줄로 **구분**합니다.  
+- 과목(국어/영어/수학/사회/과학)을 지정하면 해당 과목 스타일로 풀이합니다.
+""")
+    example = """[과목] 수학
+[문제] 함수 f(x)=x^2-4x+5의 최솟값을 구하라.
+[선지] ①1 ②2 ③3 ④4 ⑤5
+[내가 고른 답] ⑤
+[정답] ③
+[해설(있다면)] 완전제곱식으로 전개하면...
+---
+[과목] 영어
+[지문] The committee reached a consensus, which...
+[문제] 밑줄 친 which가 가리키는 것은?
+[선지] ①decision ②committee ③consensus ④argument ⑤result
+[내가 고른 답] ②
+[정답] ③
+"""
 
-# ──────────────────────────────────────────────
-# 입력 처리
-# ──────────────────────────────────────────────
-prompt_message = st.chat_input("메시지를 입력하세요...")
-
-if prompt_message:
-    with st.chat_message("human"):
-        st.markdown(prompt_message)
-
-    chat_history.add_user_message(prompt_message)
-
-    # 대화 길이 제한
-    if len(chat_history.messages) > 2 * max_turns:
-        chat_history.messages = chat_history.messages[-2 * max_turns:]
-
-    try:
-        with st.chat_message("ai"):
-            with st.spinner("생각 중...🤔"):
-                response = simple_chain.invoke(
-                    {"input": prompt_message},
-                    config={"configurable": {"session_id": "student-session"}}
-                )
-                st.markdown(response)
-                chat_history.add_ai_message(response)
-
-    except Exception as e:
-        st.error(f"❌ 응답 생성 중 오류가 발생했습니다: {e}")
+    col_a, col_b = st.columns([3,1])
+    with col_a:
+        pasted = st.text_area("여기에 붙여넣기 (문항 구분: ---)", height=260, value="")
+    with col_b:
+        if st.button("🧾 샘플 템
