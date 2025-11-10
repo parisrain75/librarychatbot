@@ -10,9 +10,93 @@ nest_asyncio.apply()
 # Set wide layout and title for a better look
 st.set_page_config(layout="wide", page_title="마음 힐링 상담 요정 봇")
 
+# -----------------------------------------------------
+# 🎶 배경 음악 (MP3) 및 제어 버튼 구현
+# -----------------------------------------------------
+import streamlit.components.v1 as components
+import base64
+
+# 로컬 MP3 파일 경로 설정 (파일 이름을 확인하고 수정하세요!)
+AUDIO_FILE_PATH = "ambient_music.mp3" 
+
+# Tone.js 대신 HTML Audio를 사용합니다.
+# base64 인코딩을 사용하여 Streamlit 환경에서 로컬 파일에 접근합니다.
+try:
+    with open(AUDIO_FILE_PATH, "rb") as f:
+        audio_bytes = f.read()
+        audio_b64 = base64.b64encode(audio_bytes).decode()
+        audio_src = f"data:audio/mp3;base64,{audio_b64}"
+except FileNotFoundError:
+    st.warning(f"⚠️ 경고: '{AUDIO_FILE_PATH}' 파일을 찾을 수 없어 배경음악 기능이 작동하지 않습니다. 파일을 추가해 주세요.")
+    audio_src = ""
+
+# 오디오 제어 HTML/JavaScript
+audio_control_html = f"""
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+<audio id="background-audio" loop preload="auto" src="{audio_src}" style="display: none;"></audio>
+
+<button id="music-toggle-btn" 
+        onclick="toggleMusic()" 
+        style="
+            background: #9370DB; 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin: 0 auto;
+        ">
+    <i class="fa-solid fa-play"></i>
+</button>
+
+<script>
+    const audio = document.getElementById('background-audio');
+    const button = document.getElementById('music-toggle-btn');
+    const icon = button.querySelector('i');
+    
+    // 볼륨 설정 (너무 크지 않게)
+    audio.volume = 0.3; 
+
+    // 재생/정지 토글 함수
+    function toggleMusic() {{
+        if (audio.paused) {{
+            // 재생 시도 (사용자 상호작용 필요)
+            audio.play().then(() => {{
+                icon.className = 'fa-solid fa-pause';
+                button.style.background = '#FF6347'; // 정지 색상 (빨간색 계열)
+                console.log('Music started.');
+            }}).catch(error => {{
+                console.error('Playback failed:', error);
+                alert('자동 재생이 차단되었습니다. 페이지를 새로고침하거나 다른 곳을 클릭해 주세요.');
+            }});
+        }} else {{
+            audio.pause();
+            icon.className = 'fa-solid fa-play';
+            button.style.background = '#9370DB'; // 재생 색상 (보라색 계열)
+            console.log('Music paused.');
+        }}
+    }}
+</script>
+"""
+
+# HTML 컴포넌트를 사용하여 스크립트를 삽입
+components.html(audio_control_html, height=60)
+# -----------------------------------------------------
+
+
 # Custom CSS for theme - 상담소 분위기와 명확한 대화 정렬을 위해 CSS 수정
 st.markdown("""
 <style>
+/* Font Awesome 로드 */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
 /* 전체 페이지 배경을 부드러운 파스텔 톤(연한 라벤더)으로 */
 .stApp {
     background-color: #F8F4FF; 
@@ -140,7 +224,7 @@ h1 {
 
 # LangChain 관련 컴포넌트는 제거하고, 순수 Gemini Chat만 사용
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage # AIMessage도 import
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage 
 from langchain_community.chat_message_histories.streamlit import StreamlitChatMessageHistory
 
 # Gemini API 키 설정
@@ -162,55 +246,6 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("💖 마음 건강 힐링 상담소 💖")
 
-# -----------------------------------------------------
-# 🎶 배경 음악 (Ambient Sound) 및 GIF 추가 🎶
-# -----------------------------------------------------
-import streamlit.components.v1 as components
-
-# 1. 배경 음악 스크립트 (Tone.js 사용)
-audio_script_html = f"""
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-<script>
-    // Tone.js를 초기화하고 Synth를 생성합니다.
-    let ambientSynth;
-
-    function initializeAudio() {{
-        if (!ambientSynth) {{
-            // AudioContext 활성화
-            Tone.start();
-
-            // 부드러운 패드(Pad) 사운드를 위한 Synth 설정
-            ambientSynth = new Tone.PolySynth(Tone.Synth, {{
-                oscillator: {{ type: "sine" }}, // 부드러운 사인파
-                envelope: {{
-                    attack: 4,    // 길게 서서히 시작
-                    decay: 1,
-                    sustain: 0.8,
-                    release: 5    // 길게 서서히 끝남
-                }},
-                volume: -15 // 볼륨을 낮게 설정 (배경음악)
-            }}).toDestination();
-
-            // C3 메이저 코드 (C3, E3, G3)를 느리게 반복 재생
-            const loop = new Tone.Loop(time => {{
-                ambientSynth.triggerAttackRelease(["C3", "E3", "G3"], "8n", time, 0.5);
-            }}, "4n").start(0); 
-
-            Tone.Transport.start();
-            console.log("Ambient Music Initialized and Started.");
-        }}
-    }}
-    
-    // 페이지 클릭 또는 상호작용 시 오디오 초기화 및 재생
-    document.documentElement.addEventListener('click', initializeAudio, {{ once: true }});
-    document.documentElement.addEventListener('touchstart', initializeAudio, {{ once: true }});
-    
-</script>
-"""
-
-# HTML 컴포넌트를 사용하여 스크립트를 삽입 (화면에 보이지 않도록 높이 0)
-components.html(audio_script_html, height=0)
-
 
 # 2. GIF 이미지 추가 (중앙 정렬)
 GIF_FILE_PATH = "cute_fairy.gif" 
@@ -223,7 +258,6 @@ with col2:
         width=150,
         use_column_width=False 
     )
-# -----------------------------------------------------
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
@@ -281,6 +315,9 @@ for msg in chat_history_handler.messages:
 with st.expander("💖 나의 마음 기록 보기", expanded=False):
     if st.session_state["emotion_logs"]:
         st.subheader(f"총 {len(st.session_state['emotion_logs'])}개의 기록이 있어.") # 반말로 수정
+        
+        # 감정별 개수 계산 (UI 개선 후 이 부분은 간소화)
+        emotion_counts = {}
         
         # 전체 기록 표시
         for log in reversed(st.session_state["emotion_logs"]): # 최신 기록부터 표시
