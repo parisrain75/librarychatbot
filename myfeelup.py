@@ -152,7 +152,10 @@ HEALING_SYSTEM_PROMPT = """
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
 # 💖 여기에 귀여운 GIF 이미지와 클릭 시 효과음 JavaScript 추가! 💖
-gif_html = """
+# 💡 [수정] 파일 경로 문제 해결을 위해 공개된 GIF 링크를 사용합니다.
+GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
+
+gif_html = f"""
 <div class="gif-container">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <script>
@@ -181,7 +184,7 @@ gif_html = """
             }
         }
     </script>
-    <img src="cute_fairy.gif" 
+    <img src="{GIF_URL}" 
          onclick="playChime()" 
          alt="힐링 요정 GIF"
          style="cursor: pointer; 
