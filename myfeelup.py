@@ -154,13 +154,14 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 [수정] GIF 이미지와 클릭 효과음 코드를 간단한 GIF 이미지만 남기도록 변경했습니다. 💖
-GIF_URL = "https://i.imgur.com/K3dF95v.gif" # 임시로 공개된 귀여운 요정 GIF 링크 사용
+# 💖 [수정] GIF 이미지 경로를 로컬 파일 경로로 변경했습니다. 💖
+# ⚠️ 이 코드가 작동하려면 'cute_fairy.gif' 파일이 이 스크립트와 같은 폴더에 있어야 합니다.
+GIF_FILE_PATH = "cute_fairy.gif" 
 
 # st.markdown(unsafe_allow_html=True)를 사용하여 GIF 이미지와 설명만 삽입
 st.markdown(f"""
 <div style="text-align: center;">
-    <img src="{GIF_URL}" 
+    <img src="{GIF_FILE_PATH}" 
          alt="힐링 요정 GIF"
          style="width: 150px; 
                 height: 150px;
@@ -173,7 +174,6 @@ st.markdown(f"""
     </p>
 </div>
 """, unsafe_allow_html=True)
-# 이전의 st.components.v1.html 코드를 모두 제거했습니다.
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
