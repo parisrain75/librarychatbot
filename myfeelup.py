@@ -36,6 +36,12 @@ h1 {
     margin-bottom: 30px; /* 아래쪽 마진 추가 */
 }
 
+/* GIF container styling for centering */
+.gif-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
 /* 챗 메시지 컨테이너의 기본 마진을 초기화 */
 [data-testid="stChatMessage"] {
     padding: 0; 
@@ -143,12 +149,54 @@ HEALING_SYSTEM_PROMPT = """
 """
 
 # Streamlit UI
-st.header("💖 마음 건강 힐링 상담소 💖")
+st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 여기에 귀여운 GIF 이미지 추가! 💖
-# 'cute_fairy.gif' 파일을 스크립트와 같은 폴더에 넣어주세요.
-# width를 조절하여 이미지 크기를 조정할 수 있습니다.
-st.image("cute_fairy.gif", width=150, use_column_width=False, caption="안녕! 나는 힐링 요정이야 ✨") 
+# 💖 여기에 귀여운 GIF 이미지와 클릭 시 효과음 JavaScript 추가! 💖
+gif_html = """
+<div class="gif-container">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script>
+        // Tone.js를 초기화하고 Synth를 생성합니다.
+        let synth;
+        
+        // AudioContext는 사용자의 첫 상호작용이 있어야 활성화됩니다.
+        function initializeAudio() {
+            if (!synth) {
+                // AudioContext 활성화
+                Tone.start();
+                synth = new Tone.Synth({
+                    oscillator: { type: "triangle" }, // 부드러운 소리
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.5 }
+                }).toDestination();
+                console.log("AudioContext 및 Synth 초기화 완료.");
+            }
+        }
+        
+        // 클릭 시 소리 재생
+        function playChime() {
+            initializeAudio(); // 첫 클릭 시 오디오 초기화
+            if (synth) {
+                // 반짝이는 요정 소리 (C5, E5, G5 화음)
+                synth.triggerAttackRelease(["C5", "E5", "G5"], "4n", Tone.now(), 0.5);
+            }
+        }
+    </script>
+    <img src="cute_fairy.gif" 
+         onclick="playChime()" 
+         alt="힐링 요정 GIF"
+         style="cursor: pointer; 
+                width: 150px; 
+                height: 150px;
+                border-radius: 50%; 
+                border: 5px solid #9370DB; /* 요정 테두리 색상 */
+                box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
+                object-fit: cover;">
+    <p style="font-size: 0.9em; color: #8C4799; margin-top: 10px;">
+        안녕! 나는 힐링 요정이야 ✨ (클릭하면 소리가 나! 🎶)
+    </p>
+</div>
+"""
+st.markdown(gif_html, unsafe_allow_html=True) 
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
