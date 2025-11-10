@@ -42,6 +42,13 @@ h1 {
     text-align: center;
     margin: 0 auto 20px auto; /* 중앙 정렬 및 하단 마진 */
 }
+/* st.image 내부의 이미지에 직접 스타일 적용 */
+[data-testid="stImage"] img {
+    border-radius: 50%; 
+    border: 5px solid #9370DB; /* 요정 테두리 색상 */
+    box-shadow: 0 4px 10px rgba(147, 112, 219, 0.6); /* 그림자 추가 */
+    object-fit: cover;
+}
 
 /* 챗 메시지 컨테이너의 기본 마진을 초기화 */
 [data-testid="stChatMessage"] {
@@ -153,17 +160,17 @@ HEALING_SYSTEM_PROMPT = """
 # Streamlit UI
 st.header("🧚‍♀️ 마음 건강 힐링 상담소 💖")
 
-# 💖 [수정] st.markdown 대신 st.image를 사용하여 GIF 파일을 안전하게 로드합니다. 💖
-# ⚠️ 이 코드가 작동하려면 'cute_fairy.gif' 파일이 이 스크립트와 같은 폴더에 있어야 합니다.
+# 💖 [수정] st.image에 use_column_width=True를 추가하여 GIF 애니메이션 활성화를 시도합니다. 💖
 GIF_FILE_PATH = "cute_fairy.gif" 
 
 # st.image를 사용하여 로컬 파일 경로에 있는 GIF를 로드
 st.image(
     GIF_FILE_PATH, 
     caption="안녕! 나는 힐링 요정이야 ✨", # 캡션을 설명 텍스트로 사용
-    width=150
+    width=150,
+    # 💡 이 옵션을 추가하여 Streamlit이 GIF 파일을 다시 처리하고 애니메이션을 활성화하도록 유도합니다.
+    use_column_width=False 
 )
-# st.markdown을 제거했습니다.
 
 st.markdown("_{tip: 네 마음의 이야기를 편하게 털어놔 봐. 요정이가 귀 기울여 들을게!}_")
 
